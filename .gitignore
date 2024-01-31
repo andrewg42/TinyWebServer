@@ -1,0 +1,9 @@
+*/build/
+*/out/
+*/.DS_Store
+*/.DS_Store
+*/.ccls
+*/.vs/
+*/.vscode/
+*/.cache/
+*/CMakeSettings.json

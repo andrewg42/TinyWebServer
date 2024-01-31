@@ -1,0 +1,1 @@
+/bin/c++ -O3 -DNDEBUG CMakeFiles/log_test.dir/home/andy/project/WebServer/src/log/Buffer.cpp.o CMakeFiles/log_test.dir/home/andy/project/WebServer/src/log/Log.cpp.o CMakeFiles/log_test.dir/home/andy/project/WebServer/src/net/Acceptor.cpp.o CMakeFiles/log_test.dir/home/andy/project/WebServer/src/net/Reactor.cpp.o CMakeFiles/log_test.dir/log_test.cpp.o -o log_test 
