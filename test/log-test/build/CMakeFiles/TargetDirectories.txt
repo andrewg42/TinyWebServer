@@ -1,3 +1,0 @@
-/home/andy/project/WebServer/test/log-test/build/CMakeFiles/log_test.dir
-/home/andy/project/WebServer/test/log-test/build/CMakeFiles/edit_cache.dir
-/home/andy/project/WebServer/test/log-test/build/CMakeFiles/rebuild_cache.dir

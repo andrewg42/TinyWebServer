@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.10)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -10,14 +10,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(webserver LANGUAGES C CXX)
 
-file(GLOB_RECURSE webserver_sources CONFIGURE_DEPENDS src/*.cpp)
-file(GLOB_RECURSE webserver_headers CONFIGURE_DEPENDS include/*.h)
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS server/*.cpp server/*.c)
+file(GLOB_RECURSE headers CONFIGURE_DEPENDS server/*.h)
 
-file(GLOB_RECURSE webserver_test CONFIGURE_DEPENDS test/*.cpp)
+add_executable(main ${sources} ${headers})
 
-add_executable(server ${webserver_sources} ${webserver_headers})
-target_include_directories(server PUBLIC include)
+target_include_directories(main PUBLIC .)
 
 find_package(Threads REQUIRED)
-target_link_libraries(server PUBLIC Threads::Threads)
+target_link_libraries(main PUBLIC Threads)
 
+set(THIRD_PARTY thirdparty)
+add_subdirectory(${THIRD_PARTY})
