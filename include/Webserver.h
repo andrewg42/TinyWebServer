@@ -4,6 +4,8 @@
 
 #include <utils/Singleton.h>
 
+namespace webserver {
+
 class Webserver: webserver::utils::Singleton<Webserver> {
 
     Webserver() {
@@ -16,3 +18,5 @@ class Webserver: webserver::utils::Singleton<Webserver> {
 
 
 };
+
+}

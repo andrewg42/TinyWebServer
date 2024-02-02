@@ -3,7 +3,6 @@
 #include <string>
 
 namespace webserver {
-
 namespace net {
 
 class Http_Conn {
@@ -16,6 +15,5 @@ private:
 
 };
 
-}
-
-}
+} // namespace webserver::net
+} // namespace webserver

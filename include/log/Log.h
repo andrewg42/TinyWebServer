@@ -49,17 +49,14 @@ private:
 public:
     // ctor
     explicit Log(std::string const &base_name_ = "/tmp/")
-    :   base_name(base_name_),
-        p_cur(std::make_unique<Buffer>()),
-        p_next(std::make_unique<Buffer>()),
-        min_level(Log_Level::info) {
+    : base_name(base_name_), min_level(Log_Level::info),
+    p_cur(std::make_unique<Buffer>()),
+    p_next(std::make_unique<Buffer>()) {
         start();
     }
 
     // dtor
-    ~Log() {
-        stop();
-    }
+    ~Log() { stop(); }
 
     // start log
     void start();
@@ -82,15 +79,15 @@ public:
 #undef _FUNCTION
     
 private:
-    // swap pointers of two buffers, and notice backend thread
+    // swap pointers of two buffers, and notice backend thread, when:
+    //  1. buffer is full
+    //  2. log is stopped
     void ping_pong();
 
     // task of logging thread
     void thread_task();
 
-    // flush buffer to the disk, when:
-    //  1. buffer is full
-    //  2. log is stopped
+    // flush buffer to the disk
     void flush();
 
     // implement of log_##name
@@ -109,5 +106,10 @@ private:
 };
 
 } // namespace webserver::log
+
+#define LOG_DEBUG(...) \
+    log::Log &log = log::Log::instance(); \
+    log.log_debug(__VA_ARGS__);
+
 
 } // namespace webserver

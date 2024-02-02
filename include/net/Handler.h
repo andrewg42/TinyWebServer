@@ -1,5 +1,9 @@
 #pragma once
 
-class Handler {
-    
-};
+namespace webserver {
+namespace net {
+
+class Handler {};
+
+} // namespace webserver::net
+} // namespace webserver

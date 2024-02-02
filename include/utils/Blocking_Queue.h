@@ -9,7 +9,6 @@
 #include <utils/Noncopyable.h>
 
 namespace webserver {
-
 namespace utils {
 
 template <class T, std::size_t N>
@@ -65,12 +64,12 @@ public:
         return value;
     }
 
-private: // need be locked when using
+private:
+    // (need mutex)
     bool empty() {
         return take_idx == put_idx;
     }
 };
 
 } // namespace webserver::utils
-
 } // namespace webserver

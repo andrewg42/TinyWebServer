@@ -9,7 +9,6 @@
 #include <utils/Spin_Lock.h>
 
 namespace webserver {
-
 namespace threadpool {
 
 template <class T, std::size_t N>
@@ -28,6 +27,5 @@ private:
 
 };
 
-}
-
-}
+} // namespace webserver::threadpool
+} // namespace webserver

@@ -3,23 +3,23 @@
 #include <chrono>
 #include <functional>
 
-namespace webserver {
+#include <Config.h>
 
+namespace webserver {
 namespace timer {
 
 struct Timer {
-    using Key_Type = std::chrono::steady_clock::time_point;
+    Timer_Stamp_t expired_time;
+    std::function<void()> callback;
 
-    Key_Type expired_time;
-    std::function<void()> cb_func; // TODO
+    explicit Timer(Timer_Stamp_t time, Callback_Func_t cb_func)
+    : expired_time(time), callback(std::move(cb_func)) {}
 
-    explicit Timer(Key_Type time): expired_time(time) {}
-
-    bool operator<(Timer const &rhs) const { // for std::priority_queue
+    // for std::priority_queue
+    bool operator<(Timer const &rhs) const {
         return expired_time < rhs.expired_time;
     }
 };
 
 } // namespace webserver::timer
-
 } // namespace webserver

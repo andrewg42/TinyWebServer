@@ -3,7 +3,6 @@
 #include <utility>
 
 namespace webserver {
-
 namespace utils {
 
 template <class T>
@@ -25,5 +24,4 @@ struct Singleton {
 };
 
 } // namespace webserver::utils
-
 } // namespace webserver

@@ -1,25 +1,31 @@
 #pragma once
 
-namespace webserver {
+#include <unistd.h>
+#include <sys/epoll.h>
 
+namespace webserver {
 namespace net {
 
+// RAII encapsulation for epoll
 class Reactor {
-// ref: https://github.com/an-tao/trantor
+// ref: https://github.com/an-tao/trantor/blob/master/trantor/net/inner/poller/EpollPoller.h
 private:
     int ep_fd;
-    bool is_running;
 
 public:
+    // ctor
     Reactor();
+
+    // dtor
     ~Reactor();
 
-    void run();
-    void ep_add(int fd);
-    void ep_remove(int fd);
-    void ep_mode(int fd);
+    // add fd into epoll loop
+    void add(int fd);
+
+    // remove file description from epoll loop
+    void remove(int fd);
+
 };
 
 } // namespace webserver::net
-
 } // namespace webserver

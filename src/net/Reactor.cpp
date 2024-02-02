@@ -4,39 +4,34 @@
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/epoll.h>
-#include <fcntl.h>
+
+#include <log/Log.h>
 
 namespace webserver {
-
 namespace net {
 
-void Reactor::run() {
-    // TODO
-    while(is_running) {
-        
+Reactor::Reactor() {
+    if(-1 == (ep_fd = ::epoll_create1(EPOLL_CLOEXEC))) {
+        LOG_DEBUG("epoll_create() error");
     }
 }
 
-void Reactor::ep_add(int fd) {
+Reactor::~Reactor() {
+    ::close(ep_fd);
+}
+
+void Reactor::add(int fd) {
     struct epoll_event event;
     event.data.fd = fd;
     event.events = EPOLLIN | EPOLLET;
-    epoll_ctl(ep_fd, EPOLL_CTL_ADD,fd, &event);
+    epoll_ctl(ep_fd, EPOLL_CTL_ADD, fd, &event);
 }
 
-void Reactor::ep_remove(int fd) {
+void Reactor::remove(int fd) {
     epoll_ctl(ep_fd, EPOLL_CTL_DEL, fd, NULL);
-    close(fd);
+    // TODO close fd;
 }
 
-void Reactor::ep_mode(int fd) {
-    // TODO
-}
 
 } // namespace webserver::net
-
 } // namespace webserver

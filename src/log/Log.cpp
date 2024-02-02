@@ -4,15 +4,19 @@
 #include <chrono>
 #include <format>
 #include <algorithm>
+#include <thread>
+#include <string>
 
 #include <log/Log.h>
 #include <memory>
+#include <thread>
 
 namespace webserver {
-
 namespace log {
 
 void Log::start() {
+    if(running) return;
+
     running = true;
     backend = std::thread([this] {
         thread_task();
@@ -20,6 +24,8 @@ void Log::start() {
 }
 
 void Log::stop() {
+    if(!running) return;
+
     running = false;
     ping_pong();
     if(backend.joinable()) {
@@ -65,7 +71,7 @@ void Log::flush() {
     p_next->clear();
 }
 
-static std::string to_str(Log_Level lev) {
+static std::string loglevel_serialize(Log_Level lev) {
     switch(lev) {
 #define _FUNCTION(name) case Log_Level::name: return #name;
     FOREACH_LOG_LEVEL(_FUNCTION)
@@ -76,7 +82,7 @@ static std::string to_str(Log_Level lev) {
 
 void Log::log_helper(Log_Level lev, std::string const &msg) {
     std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
-    std::string log_msg = std::format("{} [{}] {}\n", now, to_str(lev), msg);
+    std::string log_msg = std::format("{} [{}] {}\n", now, loglevel_serialize(lev), msg);
 
     std::unique_lock<std::mutex> lck(mtx_buffer);
     cv_buffer_not_full.wait(lck, [this]() {
@@ -92,5 +98,4 @@ void Log::log_helper(Log_Level lev, std::string const &msg) {
 }
 
 } // namespace webserver::log
-
 } // namespace webserver

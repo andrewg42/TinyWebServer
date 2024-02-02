@@ -2,7 +2,6 @@
 #include <mutex>
 
 namespace webserver {
-
 namespace log {
 
 void Buffer::append(std::string const &msg) {
@@ -14,5 +13,4 @@ void Buffer::append(std::string const &msg) {
 }
 
 } // namespace webserver::log
-
 } // namespace webserver

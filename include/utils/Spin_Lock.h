@@ -2,7 +2,6 @@
 #include <atomic>
 
 namespace webserver {
-
 namespace utils {
 
 class Spin_Lock {
@@ -22,5 +21,4 @@ public:
 };
 
 } // namespace webserver::utils
-
 } // namespace webserver
