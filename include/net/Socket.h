@@ -37,22 +37,9 @@ public:
 
     // 
     void listen(int backlog = 5);
+
+    // interface for Acceptor
     int accept(sockaddr_in& cli_addr);
-};
-
-// RAII encapsulation for TCP client socket
-class Clnt_Sock: public utils::Noncopyable {
-private:
-    int sock_fd;
-
-public:
-    // ctor
-    Clnt_Sock(int fd);
-
-    ~Clnt_Sock();
-
-    // TODO
-    
 };
 
 } // namespace webserver::net

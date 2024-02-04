@@ -13,8 +13,6 @@ project(webserver LANGUAGES C CXX)
 file(GLOB_RECURSE webserver_sources CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB_RECURSE webserver_headers CONFIGURE_DEPENDS include/*.h)
 
-file(GLOB_RECURSE webserver_test CONFIGURE_DEPENDS test/*.cpp)
-
 add_executable(server ${webserver_sources} ${webserver_headers})
 target_include_directories(server PUBLIC include)
 

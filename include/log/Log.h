@@ -111,5 +111,8 @@ private:
     log::Log &log = log::Log::instance(); \
     log.log_debug(__VA_ARGS__);
 
+#define LOG_ERROR(...) \
+    log::Log &log = log::Log::instance(); \
+    log.log_error(__VA_ARGS__);
 
 } // namespace webserver

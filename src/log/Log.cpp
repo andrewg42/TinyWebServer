@@ -71,18 +71,18 @@ void Log::flush() {
     p_next->clear();
 }
 
-static std::string loglevel_serialize(Log_Level lev) {
+static char const *loglevel2str(Log_Level lev) {
     switch(lev) {
 #define _FUNCTION(name) case Log_Level::name: return #name;
     FOREACH_LOG_LEVEL(_FUNCTION)
 #undef _FUNCTION
+    default: return "unknown";
     }
-    return "unknown";
 }
 
 void Log::log_helper(Log_Level lev, std::string const &msg) {
     std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
-    std::string log_msg = std::format("{} [{}] {}\n", now, loglevel_serialize(lev), msg);
+    std::string log_msg = std::format("{} [{}] {}\n", now, loglevel2str(lev), msg);
 
     std::unique_lock<std::mutex> lck(mtx_buffer);
     cv_buffer_not_full.wait(lck, [this]() {
