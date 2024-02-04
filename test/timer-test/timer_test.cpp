@@ -11,12 +11,13 @@ int main() {
 
     for(int i{}; i<10; i++) {
         tmp = std::chrono::steady_clock::now();
-        tq.add_timer(Timer(tmp, cb));
+        tq.add_timer(tmp, std::move(cb));
         std::cout << "add time: " << TO_LONG(tmp) << '\n';
     }
 
     auto vec = tq.tick(std::chrono::steady_clock::now());
 
+    std::cout << "finish tick\n";
     for(auto &elem:vec) {
         std::cout << "remove time: " << TO_LONG(elem->expired_time) << '\n';
     }

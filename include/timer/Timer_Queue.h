@@ -16,7 +16,7 @@ namespace timer {
 
 struct Key_t {
     Timer_Stamp_t stamp;
-    std::shared_ptr<Timer> p_timer;
+    std::unique_ptr<Timer> p_timer;
 
     explicit Key_t(Timer &&timer)
     : stamp(timer.expired_time), p_timer(std::make_unique<Timer>(std::move(timer))) {}
@@ -46,13 +46,13 @@ public:
     ~Timer_Queue();
 
     // add timer into container
-    void add_timer(Timer &&timer);
+    void add_timer(Timer_Stamp_t stamp, Callback_Func_t &&cb);
 
     // remove timer from container
     void remove_timer();
 
     // get all expired timers 
-    std::vector<std::shared_ptr<Timer>> tick(Timer_Stamp_t time_stamp); 
+    std::vector<std::unique_ptr<Timer>> tick(Timer_Stamp_t time_stamp); 
 
     std::size_t const size() const { return timer_mp.size(); } 
 };

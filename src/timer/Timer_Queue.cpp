@@ -11,8 +11,8 @@ Timer_Queue::~Timer_Queue() {
     for(auto it=timer_mp.begin(); it!=timer_mp.end(); ) it = timer_mp.erase(it);
 }
 
-void Timer_Queue::add_timer(Timer &&timer) {
-    timer_mp.insert(Key_t(std::move(timer)));
+void Timer_Queue::add_timer(Timer_Stamp_t stamp, Callback_Func_t &&cb) {
+    timer_mp.insert(Key_t(stamp, std::move(cb)));
 }
 
 void Timer_Queue::remove_timer() {
@@ -20,14 +20,13 @@ void Timer_Queue::remove_timer() {
 }
 
 
-std::vector<std::shared_ptr<Timer>> Timer_Queue::tick(Timer_Stamp_t time_stamp) {
+std::vector<std::unique_ptr<Timer>> Timer_Queue::tick(Timer_Stamp_t time_stamp) {
     Key_t sen(time_stamp, nullptr);
     auto end = timer_mp.lower_bound(sen);
 
-    std::vector<std::shared_ptr<Timer>> ret;
+    std::vector<std::unique_ptr<Timer>> ret;
     for(auto it=timer_mp.begin(); it!=end; ) {
-        ret.push_back(it->p_timer);
-        it = timer_mp.erase(it);
+        ret.emplace_back(std::move(timer_mp.extract(it++).value().p_timer));
     }
 
     return ret;
