@@ -18,11 +18,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-#ifndef http_parser_h
-#define http_parser_h
-#ifdef __cplusplus
-extern "C" {
-#endif
+#pragma once
 
 /* Also update SONAME in the Makefile whenever you change these. */
 #define HTTP_PARSER_VERSION_MAJOR 2
@@ -328,6 +324,9 @@ struct http_parser {
 
   /** PUBLIC **/
   void *data; /* A pointer to get hook to the "connection" or "socket" object */
+  struct Http_Request {
+    bool done = false;
+  } rqst;
 };
 
 
@@ -442,8 +441,3 @@ int http_body_is_final(const http_parser *parser);
 
 /* Change the maximum header size provided at compile time. */
 void http_parser_set_max_header_size(uint32_t size);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

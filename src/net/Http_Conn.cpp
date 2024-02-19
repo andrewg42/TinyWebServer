@@ -10,6 +10,7 @@
 #include <log/Log.h>
 
 #include <http/Http_Parser.h>
+#include "http/http_parser.h"
 
 namespace webserver {
 namespace net {
@@ -69,13 +70,23 @@ void Http_Conn::read_handler() {
         on_header_value,
         on_headers_complete,
         on_body,
-        on_message_complete
+        on_message_complete,
     };
 
     http_parser parser;
     http_parser_init(&parser, HTTP_REQUEST);
     http_parser_execute(&parser, &settings, read_buffer.data(), read_buffer.size());
-    
+
+    if(parser.method == HTTP_GET) {
+        if(!parser.rqst.done) goto end;
+        
+    }
+    else if(parser.method == HTTP_POST) {
+        if(!parser.rqst.done) goto end;
+
+    }
+
+end:
     read_buffer.clear();
 }
 
