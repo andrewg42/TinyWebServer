@@ -21,7 +21,7 @@ struct Key_t {
     explicit Key_t(Timer &&timer)
     : stamp(timer.expired_time), p_timer(std::make_unique<Timer>(std::move(timer))) {}
 
-    explicit Key_t(Timer_Stamp_t timer_stamp, Callback_Func_t cb_func)
+    explicit Key_t(Timer_Stamp_t timer_stamp, Callback_t cb_func)
     : stamp(timer_stamp), p_timer(std::make_unique<Timer>(timer_stamp, cb_func)) {}
 
     // for sentinel
@@ -46,7 +46,7 @@ public:
     ~Timer_Queue();
 
     // add timer into container
-    void add_timer(Timer_Stamp_t stamp, Callback_Func_t &&cb);
+    void add_timer(Timer_Stamp_t stamp, Callback_t &&cb);
 
     // remove timer from container
     void remove_timer();
@@ -54,6 +54,7 @@ public:
     // get all expired timers 
     std::vector<std::unique_ptr<Timer>> tick(Timer_Stamp_t time_stamp); 
 
+    // fot testing
     std::size_t const size() const { return timer_mp.size(); } 
 };
 

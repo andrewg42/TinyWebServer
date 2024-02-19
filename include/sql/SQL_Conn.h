@@ -4,7 +4,6 @@
 #include <mysql/mysql.h>
 
 namespace webserver {
-
 namespace sql {
 
 class SQL_Conn {
@@ -17,6 +16,5 @@ public:
     ~SQL_Conn();
 };
 
-}
-
-}
+} // namespace webserver::sql
+} // namespace webserver

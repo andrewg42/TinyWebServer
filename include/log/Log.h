@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <condition_variable>
 #include <format>
 #include <cstring>
@@ -37,7 +38,6 @@ class Log: public utils::Singleton<Log> {
 // sender --> buffer -receiver-> disk
 private:
     std::atomic<bool> running; // flag indicating whether the log is running
-    Log_Level min_level; // threshold
     std::string const base_name; // base directory of log files
     std::unique_ptr<Buffer> p_cur, p_next; // ping-pong buffer
     std::thread backend; // logging thread
@@ -47,6 +47,8 @@ private:
     std::condition_variable cv_need_flush; // signal the receiver when to write to the disk
 
 public:
+    Log_Level min_level; // threshold
+
     // ctor
     explicit Log(std::string const &base_name_ = "/tmp/")
     : base_name(base_name_), min_level(Log_Level::info),
@@ -106,13 +108,32 @@ private:
 };
 
 } // namespace webserver::log
+#define LOG_TRACE(...) \
+    do { \
+        webserver::log::Log &log = webserver::log::Log::instance(); \
+        if(log::Log_Level::trace >= log.min_level) { \
+        log.log_trace(__VA_ARGS__); \
+        } \
+    } while(0);
 
 #define LOG_DEBUG(...) \
-    log::Log &log = log::Log::instance(); \
-    log.log_debug(__VA_ARGS__);
+    do { \
+        webserver::log::Log &log = webserver::log::Log::instance(); \
+        if(log::Log_Level::debug >= log.min_level) { \
+        std::string msg = std::format(__VA_ARGS__); \
+        std::cout << msg << '\n'; \
+        } \
+    } while(0);
 
 #define LOG_ERROR(...) \
-    log::Log &log = log::Log::instance(); \
-    log.log_error(__VA_ARGS__);
+    do { \
+        webserver::log::Log &log = webserver::log::Log::instance(); \
+        log.log_error(__VA_ARGS__); \
+    } while(0);
 
+#define LOG_CLEANUP \
+    do { \
+        webserver::log::Log &log = webserver::log::Log::instance(); \
+        log.stop(); \
+    } while(0);
 } // namespace webserver

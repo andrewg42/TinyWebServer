@@ -6,40 +6,55 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <log/Log.h>
 
 #include <utils/Noncopyable.h>
-#include <net/Reactor.h>
 
 namespace webserver {
 namespace net {
 
 // RAII encapsulation for TCP server socket
-class Serv_Sock: public utils::Noncopyable {
-private:
+class Socket: public utils::Noncopyable {
+protected:
     int sock_fd;
 
 public:
     // ctor
-    Serv_Sock();
+    explicit Socket(int fd): sock_fd(fd) {}
 
     // dtor
-    ~Serv_Sock();
+    ~Socket();
 
     // move ctor
-    Serv_Sock(Serv_Sock &&rhs) noexcept;
+    Socket(Socket &&rhs) noexcept;
 
     // move assign
-    Serv_Sock &operator=(Serv_Sock &&rhs) noexcept;
+    Socket &operator=(Socket &&rhs) noexcept;
 
     // bind address
-    // TODO: not need ip
-    void bind_addr(char const *ip, int port);
+    // no IP, so only support one NIC
+    //void bind(int port);
 
-    // 
-    void listen(int backlog = 5);
+    // TODO: support moew IP
+    //void bind(char const *ip, int port);
+
+    // listen for socket connections
+    //void listen();
 
     // interface for Acceptor
-    int accept(sockaddr_in& cli_addr);
+    //int accept(sockaddr_in *p_clnt_addr);
+
+    // close fd
+    void close();
+
+    // enable KEEPALIVE
+    void set_keep_alive();
+
+    // check if fd is closed
+    bool is_closed() const { return -1 == sock_fd; }
+
+    // get sock_fd
+    int get_fd() const { return sock_fd; }
 };
 
 } // namespace webserver::net

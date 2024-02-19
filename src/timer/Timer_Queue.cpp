@@ -11,7 +11,7 @@ Timer_Queue::~Timer_Queue() {
     for(auto it=timer_mp.begin(); it!=timer_mp.end(); ) it = timer_mp.erase(it);
 }
 
-void Timer_Queue::add_timer(Timer_Stamp_t stamp, Callback_Func_t &&cb) {
+void Timer_Queue::add_timer(Timer_Stamp_t stamp, Callback_t &&cb) {
     timer_mp.insert(Key_t(stamp, std::move(cb)));
 }
 

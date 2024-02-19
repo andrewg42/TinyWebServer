@@ -11,10 +11,10 @@ namespace timer {
 
 struct Timer {
     Timer_Stamp_t expired_time;
-    Callback_Func_t callback;
+    Callback_t callback;
 
     // ctor
-    explicit Timer(Timer_Stamp_t time, Callback_Func_t cb_func)
+    explicit Timer(Timer_Stamp_t time, Callback_t cb_func)
     : expired_time(time), callback(std::move(cb_func)) {}
 
     // dtor

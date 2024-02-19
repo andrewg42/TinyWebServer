@@ -1,18 +1,17 @@
 #pragma once
 
-#include <string>
-#include <optional>
+#include <http/http_parser.h>
 
-#include "http/Http_Msg.h"
+int on_message_begin(http_parser*);
 
-namespace webserver {
-namespace http {
+int on_url(http_parser*, const char *at, size_t length);
 
-class Http_Parser {
-    std::optional<Http_Request> parse(std::string const &http_raw);
+int on_header_field(http_parser*, const char *at, size_t length);
 
-    std::string raw_msg;
-};
+int on_header_value(http_parser*, const char *at, size_t length);
 
-} // namespace webserver::http
-} // namespace webserver
+int on_headers_complete(http_parser*);
+
+int on_body(http_parser*, const char *at, size_t length);
+
+int on_message_complete(http_parser*);
