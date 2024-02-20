@@ -14,13 +14,6 @@
 namespace webserver {
 namespace log {
 
-Log::Log(std::string const &base_name_)
-: base_name(base_name_), min_level(Log_Level::info),
-p_cur(std::make_unique<Buffer>()),
-p_next(std::make_unique<Buffer>()) {
-    start();
-}
-
 void Log::start() {
     if(running) return;
 
@@ -33,13 +26,8 @@ void Log::start() {
 void Log::stop() {
     if(!running) return;
 
-    {
-        std::unique_lock<std::mutex> lck(mtx);
-        running = false;
-        std::swap(p_cur, p_next);
-    }
-    cv.notify_one();
-
+    running = false;
+    ping_pong();
     if(backend.joinable()) {
         backend.join();
     }
@@ -49,10 +37,15 @@ void Log::set_level(Log_Level lev) {
     min_level = lev;
 }
 
+void Log::ping_pong() {
+    std::swap(p_cur, p_next);
+    cv_need_flush.notify_one();
+}
+
 void Log::thread_task() {
     while(running) {
-        std::unique_lock<std::mutex> lck(mtx);
-        cv.wait(lck, [this]() {
+        std::unique_lock<std::mutex> lck(mtx_flush);
+        cv_need_flush.wait(lck, [this]() {
             return p_next->cur_pos==LOG_BUFF_SZ || !running;
         });
 
@@ -91,12 +84,17 @@ void Log::log_helper(Log_Level lev, std::string const &msg) {
     std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
     std::string log_msg = std::format("{} [{}] {}\n", now, loglevel2str(lev), msg);
 
-    std::unique_lock<std::mutex> lck(mtx);
+    std::unique_lock<std::mutex> lck(mtx_buffer);
+    cv_buffer_not_full.wait(lck, [this]() {
+        return p_cur->cur_pos<LOG_BUFF_SZ;
+    });
+
     p_cur->append(log_msg);
+
     if(p_cur->cur_pos==LOG_BUFF_SZ) {
-        std::swap(p_cur, p_next);
-        cv.notify_one();
+        ping_pong();
     }
+    cv_buffer_not_full.notify_one();
 }
 
 } // namespace webserver::log

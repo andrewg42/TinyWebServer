@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <net/Socket.h>
+#include "http/http_parser.h"
 #include "net/Channel.h"
 #include <utils/Noncopyable.h>
 
@@ -21,6 +22,7 @@ private:
 
     std::unique_ptr<Channel> p_chan;
     std::vector<char> read_buffer, write_buffer;
+    std::string filename;
 
 public:
     // ctor
@@ -34,6 +36,8 @@ public:
     Channel *get_chan() { return p_chan.get(); }
 
 private:
+    void gen_response(http_parser&);
+
     void read_handler();
     void write_handler();
     void close_handler();

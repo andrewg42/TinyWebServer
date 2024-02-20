@@ -242,7 +242,9 @@ http_parser_init (http_parser *parser, enum http_parser_type t)
 
 #line 118 "Http_Parser.rl"
 
+  void *data = parser->data; /* preserve application data */
   memset(parser, 0, sizeof(*parser));
+  parser->data = data;
   parser->type = t;
   parser->state = cs;
   parser->http_errno = 0;
@@ -259,7 +261,7 @@ size_t http_parser_execute (http_parser *parser,
   const char *mark = 0;
   
   
-#line 263 "Http_Parser.cpp"
+#line 265 "Http_Parser.cpp"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -407,7 +409,7 @@ _match:
 #line 90 "Http_Parser.rl"
 	{ parser->method = HTTP_PUT; }
 	break;
-#line 411 "Http_Parser.cpp"
+#line 413 "Http_Parser.cpp"
 		}
 	}
 
@@ -420,7 +422,7 @@ _again:
 	_out: {}
 	}
 
-#line 136 "Http_Parser.rl"
+#line 138 "Http_Parser.rl"
   
   return p - data;
 }

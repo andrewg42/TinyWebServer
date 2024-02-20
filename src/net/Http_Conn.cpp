@@ -10,6 +10,8 @@
 #include <log/Log.h>
 
 #include <http/Http_Parser.h>
+#include <fstream>
+#include <sstream>
 #include "http/http_parser.h"
 
 namespace webserver {
@@ -17,6 +19,10 @@ namespace net {
 
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
 static constexpr std::size_t READ_BUFFER_SZ = 1024;
+static std::map<std::string_view, std::string const> const url2file = {
+    {"/0", "../root/judge.html"},
+};
+
 
 Http_Conn::Http_Conn(Event_Loop *p_loop_, int fd_)
 : p_loop(p_loop_),
@@ -61,7 +67,7 @@ void Http_Conn::read_handler() {
         }
     }
 
-    // TODO: parse HTTP
+    // parse HTTP
     http_parser_settings settings = {
         on_message_begin,
         on_url,
@@ -77,21 +83,43 @@ void Http_Conn::read_handler() {
     http_parser_init(&parser, HTTP_REQUEST);
     http_parser_execute(&parser, &settings, read_buffer.data(), read_buffer.size());
 
+    gen_response(parser);
+
+    read_buffer.clear();
+}
+
+void Http_Conn::gen_response(http_parser &parser) {
     if(parser.method == HTTP_GET) {
-        if(!parser.rqst.done) goto end;
+        if(!parser.rqst.done) return;
+        auto it = url2file.find(parser.rqst.url);
+        if(it == url2file.end()) return;
+
+        std::ifstream file(it->second.c_str(), std::ifstream::in);
+        if(!file.is_open()) {
+            LOG_ERROR("open file {}", it->second);
+        }
+
+        std::string response_header = "HTTP/1.1 200 OK\r\n";
+        response_header += "Content-Type: test/plain\r\n";
+        response_header += "\r\n";
+        std::copy(response_header.begin(), response_header.end(), write_buffer.begin());
+
         
     }
     else if(parser.method == HTTP_POST) {
-        if(!parser.rqst.done) goto end;
-
+        if(!parser.rqst.done) return;
+        std::cout << "POST" << '\n';
     }
 
-end:
-    read_buffer.clear();
+    write_handler();
 }
 
 void Http_Conn::write_handler() {
     LOG_DEBUG("Http_Conn::write_handler()");
+
+    while(true) {
+        // TODO
+    }
 }
 
 void Http_Conn::close_handler() {

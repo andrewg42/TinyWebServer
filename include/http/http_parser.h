@@ -19,6 +19,7 @@
  * IN THE SOFTWARE.
  */
 #pragma once
+#include <string_view>
 
 /* Also update SONAME in the Makefile whenever you change these. */
 #define HTTP_PARSER_VERSION_MAJOR 2
@@ -325,7 +326,14 @@ struct http_parser {
   /** PUBLIC **/
   void *data; /* A pointer to get hook to the "connection" or "socket" object */
   struct Http_Request {
+    char *field_at = nullptr;
+    size_t field_len = 0;
+    bool update = false;
+
     bool done = false;
+    std::string_view url;
+    bool connection = false; // true when keep-alive
+    std::string_view body;
   } rqst;
 };
 
