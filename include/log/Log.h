@@ -37,25 +37,19 @@ class Log: public utils::Singleton<Log> {
 // ref: https://github.com/chenshuo/muduo/blob/master/muduo/base/AsyncLogging.h
 // sender --> buffer -receiver-> disk
 private:
+    // 
     std::atomic<bool> running; // flag indicating whether the log is running
     std::string const base_name; // base directory of log files
     std::unique_ptr<Buffer> p_cur, p_next; // ping-pong buffer
     std::thread backend; // logging thread
-    std::mutex mtx_buffer; // make frontend thread safe
-    std::condition_variable cv_buffer_not_full; // signal waiting threads that data has been appended
-    std::mutex mtx_flush;
-    std::condition_variable cv_need_flush; // signal the receiver when to write to the disk
+    std::mutex mtx;
+    std::condition_variable cv;
 
 public:
     Log_Level min_level; // threshold
 
     // ctor
-    explicit Log(std::string const &base_name_ = "/tmp/")
-    : base_name(base_name_), min_level(Log_Level::info),
-    p_cur(std::make_unique<Buffer>()),
-    p_next(std::make_unique<Buffer>()) {
-        start();
-    }
+    explicit Log(std::string const &base_name_ = "/tmp/");
 
     // dtor
     ~Log() { stop(); }
@@ -84,7 +78,6 @@ private:
     // swap pointers of two buffers, and notice backend thread, when:
     //  1. buffer is full
     //  2. log is stopped
-    void ping_pong();
 
     // task of logging thread
     void thread_task();
@@ -112,7 +105,7 @@ private:
     do { \
         webserver::log::Log &log = webserver::log::Log::instance(); \
         if(log::Log_Level::trace >= log.min_level) { \
-        log.log_trace(__VA_ARGS__); \
+            log.log_trace(__VA_ARGS__); \
         } \
     } while(0);
 
@@ -120,8 +113,7 @@ private:
     do { \
         webserver::log::Log &log = webserver::log::Log::instance(); \
         if(log::Log_Level::debug >= log.min_level) { \
-        std::string msg = std::format(__VA_ARGS__); \
-        std::cout << msg << '\n'; \
+            log.log_debug(__VA_ARGS__); \
         } \
     } while(0);
 
