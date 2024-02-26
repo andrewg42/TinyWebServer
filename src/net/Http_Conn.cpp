@@ -3,33 +3,55 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
+#include <fstream>
+#include <memory>
+#include <sstream>
+#include <format>
+#include <string>
 
 #include <net/Channel.h>
 #include <net/Event_Loop.h>
 #include <net/Socket.h>
 #include <log/Log.h>
-
 #include <http/Http_Parser.h>
-#include <fstream>
-#include <sstream>
-#include "http/http_parser.h"
 
 namespace webserver {
 namespace net {
 
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
-static constexpr std::size_t READ_BUFFER_SZ = 1024;
-static std::map<std::string_view, std::string const> const url2file = {
-    {"/0", "../root/judge.html"},
+static constexpr std::size_t READ_BUFFER_SZ = 2048;
+static constexpr std::size_t WRITE_BUFFER_SZ = 1024;
+#define XX(num, name, str) static std::string_view _##num = "HTTP/1.1 " #num " " #str  "\r\n";
+HTTP_STATUS_MAP(XX)
+#undef XX
+
+static std::string_view _200_form = "<html><body></body></html>";
+static std::string_view _400_form = "Your request has bad syntax or is inherently impossible to staisfy.\n";
+static std::string_view _403_form = "You do not have permission to get file form this server.\n";
+static std::string_view _404_form = "The requested file was not found on this server.\n";
+static std::string_view _500_form = "There was an unusual problem serving the request file.\n";
+
+
+static std::map<std::string_view, std::string const> const url2file =
+{   {"/0", "../root/judge.html"}
+,   {"/1", "../root/log.html"}
 };
 
+http_parser_settings Http_Conn::settings = {
+    nullptr,
+    http::on_method,
+    http::on_url,
+    http::on_http_version,
+    http::on_header_field,
+    http::on_header_value,
+    http::on_headers_complete,
+};
 
 Http_Conn::Http_Conn(Event_Loop *p_loop_, int fd_)
 : p_loop(p_loop_),
   Socket(fd_),
   p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)),
-  read_buffer(READ_BUFFER_SZ) {
-}
+  read_buffer(READ_BUFFER_SZ), write_buffer(WRITE_BUFFER_SZ) {}
 
 void Http_Conn::init_chan() {
     LOG_DEBUG("Http_Conn::init_chan()");
@@ -67,51 +89,84 @@ void Http_Conn::read_handler() {
         }
     }
 
-    // parse HTTP
-    http_parser_settings settings = {
-        on_message_begin,
-        on_url,
-        nullptr,
-        on_header_field,
-        on_header_value,
-        on_headers_complete,
-        on_body,
-        on_message_complete,
-    };
-
-    http_parser parser;
     http_parser_init(&parser, HTTP_REQUEST);
     http_parser_execute(&parser, &settings, read_buffer.data(), read_buffer.size());
 
-    gen_response(parser);
+    auto rc = gen_response(parser);
+    if(!rc) {
+        // remove Http_Conn
+    }
 
     read_buffer.clear();
 }
 
-void Http_Conn::gen_response(http_parser &parser) {
-    if(parser.method == HTTP_GET) {
-        if(!parser.rqst.done) return;
-        auto it = url2file.find(parser.rqst.url);
-        if(it == url2file.end()) return;
+bool Http_Conn::append_response(std::string_view str) {
+    
+}
 
-        std::ifstream file(it->second.c_str(), std::ifstream::in);
-        if(!file.is_open()) {
-            LOG_ERROR("open file {}", it->second);
-        }
+bool Http_Conn::add_headers(int content_len)
+{
+    return add_content_length(content_len) && add_linger() &&
+           add_blank_line();
+}
 
-        std::string response_header = "HTTP/1.1 200 OK\r\n";
-        response_header += "Content-Type: test/plain\r\n";
-        response_header += "\r\n";
-        std::copy(response_header.begin(), response_header.end(), write_buffer.begin());
+bool Http_Conn::add_content_length(int content_len)
+{
+    std::string msg = std::format("Content-Length:{}\r\n", content_len);
+    return append_response(msg);
+}
 
-        
+bool Http_Conn::add_content_type()
+{
+    return append_response("Content-Type:text/html\r\n");
+}
+
+bool Http_Conn::add_linger()
+{
+    std::string msg = std::format("Content-Length:{}\r\n", (parser.connection == true) ? "keep-alive" : "close");
+    
+    return append_response(msg);
+}
+
+bool Http_Conn::add_blank_line()
+{
+    return append_response("\r\n");
+}
+
+bool Http_Conn::gen_response(http_parser &parser) {
+    if(parser.http_errno != HPE_OK) { // 400
+        return append_response(_400)
+            &&  add_headers(_400_form.size())
+            &&  append_response(_400_form);
     }
-    else if(parser.method == HTTP_POST) {
-        if(!parser.rqst.done) return;
-        std::cout << "POST" << '\n';
+
+    auto it = url2file.find(parser.url);
+    if(it == url2file.end()) { // 403 or 404?
+        return append_response(_404)
+            &&  add_headers(_404_form.size())
+            &&  append_response(_404_form);
     }
 
-    write_handler();
+    std::ifstream file(it->second.c_str(), std::ifstream::in);
+    if(!file.is_open()) {
+        LOG_ERROR("open file {}", it->second);
+    }
+
+    // file operations with stat() and mmap()
+    if(parser.method == HTTP_GET) [[likely]] {
+
+    } else if(parser.method == HTTP_POST) {
+
+    }
+
+    return true;
+    
+
+    std::string response_header = "HTTP/1.1 200 OK\r\n";
+    response_header += "Content-Type: test/plain\r\n";
+    response_header += "\r\n";
+    std::copy(response_header.begin(), response_header.end(), write_buffer.begin());
+
 }
 
 void Http_Conn::write_handler() {

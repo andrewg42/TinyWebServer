@@ -1,15 +1,16 @@
 #pragma once
 
+#include <atomic>
 #include <iostream>
 #include <condition_variable>
 #include <format>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <chrono>
 #include <string_view>
 
 #include <Config.h>
-#include <utils/Blocking_Queue.h>
 #include <utils/Singleton.h>
 #include <log/Buffer.h>
 
@@ -37,33 +38,26 @@ class Log: public utils::Singleton<Log> {
 // ref: https://github.com/chenshuo/muduo/blob/master/muduo/base/AsyncLogging.h
 // sender --> buffer -receiver-> disk
 private:
+    std::thread backend; // logging thread
     std::atomic<bool> running; // flag indicating whether the log is running
     std::string const base_name; // base directory of log files
-    std::unique_ptr<Buffer> p_cur, p_next; // ping-pong buffer
-    std::thread backend; // logging thread
-    std::mutex mtx_buffer; // make frontend thread safe
-    std::condition_variable cv_buffer_not_full; // signal waiting threads that data has been appended
-    std::mutex mtx_flush;
-    std::condition_variable cv_need_flush; // signal the receiver when to write to the disk
+    std::unique_ptr<Buffer> p_buffer, p_buffer_to_write; // ping-pong buffer
+    std::mutex mtx;
+    std::condition_variable cv;
 
 public:
     Log_Level min_level; // threshold
 
     // ctor
-    explicit Log(std::string const &base_name_ = "/tmp/")
-    : base_name(base_name_), min_level(Log_Level::info),
-    p_cur(std::make_unique<Buffer>()),
-    p_next(std::make_unique<Buffer>()) {
-        start();
-    }
+    Log();
 
-    // dtor
-    ~Log() { stop(); }
+    // dtor: will cause core dumped(double free of p_buffer and p_buffer_to_write)
+    ~Log() = default;
 
-    // start log
+    // start log thread
     void start();
 
-    // stop log
+    // stop log thread
     void stop();
 
     // set the threshold of log level
@@ -84,13 +78,9 @@ private:
     // swap pointers of two buffers, and notice backend thread, when:
     //  1. buffer is full
     //  2. log is stopped
-    void ping_pong();
 
     // task of logging thread
     void thread_task();
-
-    // flush buffer to the disk
-    void flush();
 
     // implement of log_##name
     // ref: https://en.cppreference.com/w/cpp/utility/format/vformat
@@ -112,7 +102,7 @@ private:
     do { \
         webserver::log::Log &log = webserver::log::Log::instance(); \
         if(log::Log_Level::trace >= log.min_level) { \
-        log.log_trace(__VA_ARGS__); \
+            log.log_trace(__VA_ARGS__); \
         } \
     } while(0);
 
@@ -120,8 +110,7 @@ private:
     do { \
         webserver::log::Log &log = webserver::log::Log::instance(); \
         if(log::Log_Level::debug >= log.min_level) { \
-        std::string msg = std::format(__VA_ARGS__); \
-        std::cout << msg << '\n'; \
+            log.log_debug(__VA_ARGS__); \
         } \
     } while(0);
 

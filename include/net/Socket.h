@@ -50,11 +50,12 @@ public:
     // enable KEEPALIVE
     void set_keep_alive();
 
-    // check if fd is closed
-    bool is_closed() const { return -1 == sock_fd; }
-
     // get sock_fd
     int get_fd() const { return sock_fd; }
+
+private:
+    // check if fd is closed
+    bool is_closed() const { return -1 == sock_fd; }
 };
 
 } // namespace webserver::net

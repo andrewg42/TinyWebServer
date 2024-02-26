@@ -9,7 +9,7 @@ void Buffer::append(std::string const &msg) {
     auto dest = buffer.begin() + cur_pos;
     std::copy(msg.begin(), msg.end(), dest);
     // update off-set
-    cur_pos = std::min(cur_pos + msg.size(), LOG_BUFF_SZ);
+    cur_pos = std::min(cur_pos + msg.size(), LOG_BUFF_SZ-1);
 }
 
 } // namespace webserver::log

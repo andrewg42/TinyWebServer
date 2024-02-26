@@ -12,8 +12,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(${proj_name} LANGUAGES C CXX)
 
-file(GLOB_RECURSE webserver_headers CONFIGURE_DEPENDS ../../include/*.h)
-file(GLOB_RECURSE webserver_sources CONFIGURE_DEPENDS ../../src/*.cpp)
+file(GLOB_RECURSE webserver_headers CONFIGURE_DEPENDS ../../include/${mod}/*.h)
+file(GLOB_RECURSE webserver_sources CONFIGURE_DEPENDS ../../src/${mod}/*.cpp)
 list(FILTER webserver_sources EXCLUDE REGEX "../../src/server.cpp")
 
 find_package(Threads REQUIRED)

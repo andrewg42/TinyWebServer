@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "log/Buffer.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -14,61 +15,63 @@
 namespace webserver {
 namespace log {
 
+static const std::string LOG_DIR = "/tmp/";
+
+Log::Log()
+: base_name(LOG_DIR), min_level(Log_Level::info),
+  running(false),
+  p_buffer(std::make_unique<Buffer>()),
+  p_buffer_to_write(std::make_unique<Buffer>()) {
+    start();
+}
+
 void Log::start() {
     if(running) return;
 
     running = true;
-    backend = std::thread([this] {
-        thread_task();
-    });
+    backend = std::thread(&Log::thread_task, this);
 }
 
 void Log::stop() {
     if(!running) return;
 
     running = false;
-    ping_pong();
-    if(backend.joinable()) {
-        backend.join();
-    }
+    cv.notify_one();
+    if(backend.joinable()) backend.join();
 }
 
 void Log::set_level(Log_Level lev) {
     min_level = lev;
 }
 
-void Log::ping_pong() {
-    std::swap(p_cur, p_next);
-    cv_need_flush.notify_one();
-}
-
 void Log::thread_task() {
+    //std::unique_ptr<Buffer> p_buffer_to_write = std::make_unique<Buffer>();
+
     while(running) {
-        std::unique_lock<std::mutex> lck(mtx_flush);
-        cv_need_flush.wait(lck, [this]() {
-            return p_next->cur_pos==LOG_BUFF_SZ || !running;
-        });
+        {
+            std::unique_lock lck(mtx);
+            cv.wait(lck, [this]() {
+                return p_buffer->cur_pos>=LOG_BUFF_SZ-1 || !running;
+            });
+            std::swap(p_buffer, p_buffer_to_write);
+        }
 
-        flush();
+        // flush buffer to the disk
+        // timestamp for setting file name
+        std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
+        // set name of logging file
+        std::ofstream out_file(base_name + std::format("webserverlog_{}.txt", now));
+        if (!out_file.is_open()) {
+            std::cerr << "Failed to open the file for writing." << std::endl;
+            continue;
+        }
+
+        //out_file.write(p_next->buffer.data(), p_next->buffer.size());
+        out_file.write(p_buffer_to_write->buffer.data(), p_buffer_to_write->cur_pos);
+        out_file.close();
+
+        p_buffer_to_write->clear();
     }
-}
-
-void Log::flush() {
-    // timestamp for setting file name
-    std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
-    
-    // set name of logging file
-    std::ofstream out_file(base_name + std::format("webserverlog_{}.txt", now));
-    if (!out_file.is_open()) {
-        std::cerr << "Failed to open the file for writing." << std::endl;
-        return;
-    }
-
-    //out_file.write(p_next->buffer.data(), p_next->buffer.size());
-    out_file.write(p_next->buffer.data(), p_next->cur_pos);
-    out_file.close();
-
-    p_next->clear();
 }
 
 static char const *loglevel2str(Log_Level lev) {
@@ -84,17 +87,11 @@ void Log::log_helper(Log_Level lev, std::string const &msg) {
     std::chrono::zoned_time now{std::chrono::current_zone(), std::chrono::high_resolution_clock::now()};
     std::string log_msg = std::format("{} [{}] {}\n", now, loglevel2str(lev), msg);
 
-    std::unique_lock<std::mutex> lck(mtx_buffer);
-    cv_buffer_not_full.wait(lck, [this]() {
-        return p_cur->cur_pos<LOG_BUFF_SZ;
-    });
-
-    p_cur->append(log_msg);
-
-    if(p_cur->cur_pos==LOG_BUFF_SZ) {
-        ping_pong();
+    std::unique_lock lck(mtx);
+    p_buffer->append(log_msg);
+    if(p_buffer->cur_pos >= LOG_BUFF_SZ-1) {
+        cv.notify_one();
     }
-    cv_buffer_not_full.notify_one();
 }
 
 } // namespace webserver::log
