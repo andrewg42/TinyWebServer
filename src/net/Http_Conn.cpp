@@ -8,6 +8,8 @@
 #include <sstream>
 #include <format>
 #include <string>
+#include <string_view>
+#include "http/http_parser.h"
 
 #include <net/Channel.h>
 #include <net/Event_Loop.h>
@@ -19,8 +21,6 @@ namespace webserver {
 namespace net {
 
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
-static constexpr std::size_t READ_BUFFER_SZ = 2048;
-static constexpr std::size_t WRITE_BUFFER_SZ = 1024;
 #define XX(num, name, str) static std::string_view _##num = "HTTP/1.1 " #num " " #str  "\r\n";
 HTTP_STATUS_MAP(XX)
 #undef XX
@@ -32,9 +32,13 @@ static std::string_view _404_form = "The requested file was not found on this se
 static std::string_view _500_form = "There was an unusual problem serving the request file.\n";
 
 
-static std::map<std::string_view, std::string const> const url2file =
-{   {"/0", "../root/judge.html"}
+static std::map<std::string_view const, std::string_view const> const url2file =
+{   {"/", "../root/register.html"}
+,   {"/0", "../root/register.html"}
 ,   {"/1", "../root/log.html"}
+,   {"/2", "../root/welcome.html"}
+,   {"/5", "../root/picture.html"}
+,   {"/6", "../root/video.html"}
 };
 
 http_parser_settings Http_Conn::settings = {
@@ -50,8 +54,10 @@ http_parser_settings Http_Conn::settings = {
 Http_Conn::Http_Conn(Event_Loop *p_loop_, int fd_)
 : p_loop(p_loop_),
   Socket(fd_),
-  p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)),
-  read_buffer(READ_BUFFER_SZ), write_buffer(WRITE_BUFFER_SZ) {}
+  p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)) {
+    read_buffer.clear();
+    write_buffer.clear();
+}
 
 void Http_Conn::init_chan() {
     LOG_DEBUG("Http_Conn::init_chan()");
@@ -66,12 +72,12 @@ void Http_Conn::read_handler() {
     LOG_DEBUG("Http_Conn::read_handler()");
 
     // read from socket fd
-    int read_bytes, read_bytes_tot{};
-    int read_step = READ_BUFFER_SZ;
+    std::size_t read_bytes, read_bytes_tot{};
+    constexpr std::size_t read_step = READ_BUFFER_SZ>>1;
     while(true) {
-        int read_bytes = ::recv(get_fd(), read_buffer.data() + read_bytes_tot, READ_BUFFER_SZ, 0);
-        if(0 == read_bytes) { // socket has been closed
-            // just wait timer to remove it
+        int read_bytes = ::recv(get_fd(), (void*)(read_buffer.data() + read_bytes_tot), read_step, 0);
+        if(0 == read_bytes) { // socket has been closed, just wait timer to remove it
+            
             return;
         }
         else if(0 > read_bytes) {
@@ -83,8 +89,11 @@ void Http_Conn::read_handler() {
         }
         else { // need continue reading
             read_bytes_tot += read_bytes;
-            if(read_bytes_tot >= read_buffer.size()) {
-                read_buffer.resize(read_buffer.size() * 2);
+            if(read_bytes_tot >= read_buffer.capacity()) {
+                // any good way?
+                LOG_ERROR(" HTTP messsage is too big, {} bytes have been read", read_bytes_tot);
+                read_buffer.resize(read_buffer.capacity());
+                break;
             } 
         }
     }
@@ -92,27 +101,47 @@ void Http_Conn::read_handler() {
     http_parser_init(&parser, HTTP_REQUEST);
     http_parser_execute(&parser, &settings, read_buffer.data(), read_buffer.size());
 
-    auto rc = gen_response(parser);
-    if(!rc) {
-        // remove Http_Conn
+    // set status code
+    if(parser.http_errno == HPE_OK) do_request();
+    else parser.status_code = HTTP_STATUS_BAD_REQUEST;
+
+    // generate response
+    auto rc = gen_response();
+    if(!rc) { // error on generate response, close socket and wait timer to remove it
+        
     }
 
     read_buffer.clear();
 }
 
-bool Http_Conn::append_response(std::string_view str) {
-    
+void Http_Conn::do_request() { // TODO
+    auto it = url2file.find(parser.url);
+    if(it == url2file.end()) { // 403 or 404
+        parser.status_code = HTTP_STATUS_NOT_FOUND;
+        return;
+    }
+
+    // file operations with stat() and mmap()
+    if(parser.method == HTTP_GET) [[likely]] {
+        
+    } else if(parser.method == HTTP_POST) {
+
+    }
 }
 
-bool Http_Conn::add_headers(int content_len)
+bool Http_Conn::append_response(std::string_view str) {
+    return write_buffer.append(str);
+}
+
+bool Http_Conn::add_headers(std::size_t content_len)
 {
     return add_content_length(content_len) && add_linger() &&
            add_blank_line();
 }
 
-bool Http_Conn::add_content_length(int content_len)
+bool Http_Conn::add_content_length(std::size_t content_len)
 {
-    std::string msg = std::format("Content-Length:{}\r\n", content_len);
+    std::string const msg = std::format("Content-Length: {}\r\n", content_len);
     return append_response(msg);
 }
 
@@ -123,8 +152,7 @@ bool Http_Conn::add_content_type()
 
 bool Http_Conn::add_linger()
 {
-    std::string msg = std::format("Content-Length:{}\r\n", (parser.connection == true) ? "keep-alive" : "close");
-    
+    std::string const msg = std::format("Content-Length: {}\r\n", (parser.connection == true) ? "keep-alive" : "close");
     return append_response(msg);
 }
 
@@ -133,48 +161,36 @@ bool Http_Conn::add_blank_line()
     return append_response("\r\n");
 }
 
-bool Http_Conn::gen_response(http_parser &parser) {
-    if(parser.http_errno != HPE_OK) { // 400
+bool Http_Conn::gen_response() {
+    switch (parser.status_code) {
+    case HTTP_STATUS_OK: { // 200
+        // TODO
+        append_response(_200);
+        break;
+    }
+    case HTTP_STATUS_BAD_REQUEST: { // 400
         return append_response(_400)
             &&  add_headers(_400_form.size())
             &&  append_response(_400_form);
     }
-
-    auto it = url2file.find(parser.url);
-    if(it == url2file.end()) { // 403 or 404?
+    case HTTP_STATUS_NOT_FOUND: { // 404
         return append_response(_404)
             &&  add_headers(_404_form.size())
             &&  append_response(_404_form);
     }
-
-    std::ifstream file(it->second.c_str(), std::ifstream::in);
-    if(!file.is_open()) {
-        LOG_ERROR("open file {}", it->second);
-    }
-
-    // file operations with stat() and mmap()
-    if(parser.method == HTTP_GET) [[likely]] {
-
-    } else if(parser.method == HTTP_POST) {
-
+    default:
+        break;
     }
 
     return true;
-    
-
-    std::string response_header = "HTTP/1.1 200 OK\r\n";
-    response_header += "Content-Type: test/plain\r\n";
-    response_header += "\r\n";
-    std::copy(response_header.begin(), response_header.end(), write_buffer.begin());
-
 }
 
 void Http_Conn::write_handler() {
     LOG_DEBUG("Http_Conn::write_handler()");
 
-    while(true) {
-        // TODO
-    }
+    // while(true) {
+    //     // TODO
+    // }
 }
 
 void Http_Conn::close_handler() {

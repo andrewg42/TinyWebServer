@@ -12,7 +12,7 @@
 
 #include <Config.h>
 #include <utils/Singleton.h>
-#include <log/Buffer.h>
+#include <utils/Buffer.h>
 
 namespace webserver {
 
@@ -41,7 +41,7 @@ private:
     std::thread backend; // logging thread
     std::atomic<bool> running; // flag indicating whether the log is running
     std::string const base_name; // base directory of log files
-    std::unique_ptr<Buffer> p_buffer, p_buffer_to_write; // ping-pong buffer
+    std::unique_ptr<utils::Buffer<LOG_BUFF_SZ>> p_buffer, p_buffer_to_write; // ping-pong buffer
     std::mutex mtx;
     std::condition_variable cv;
 

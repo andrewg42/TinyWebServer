@@ -6,7 +6,9 @@
 
 #include <net/Socket.h>
 #include <http/http_parser.h>
+#include "Config.h"
 #include "net/Channel.h"
+#include <utils/Buffer.h>
 #include <utils/Noncopyable.h>
 
 namespace webserver {
@@ -27,7 +29,8 @@ private:
     http_parser parser;
 
     std::unique_ptr<Channel> p_chan;
-    std::vector<char> read_buffer, write_buffer;
+    utils::Buffer<READ_BUFFER_SZ> read_buffer;
+    utils::Buffer<WRITE_BUFFER_SZ> write_buffer;
     std::string filename;
 
 public:
@@ -59,20 +62,30 @@ public:
     Channel *get_chan() { return p_chan.get(); }
 
 private:
+    void do_request();
+
+    /**
+     * @brief append message to response
+     * 
+     * @param str : message
+     * @return true : append successfully
+     * @return false : have some error
+     */
     bool append_response(std::string_view str);
     
-    bool add_headers(int content_len);
-    bool add_content_length(int content_len);
+    bool add_headers(std::size_t content_len);
+    bool add_content_length(std::size_t content_len);
     bool add_content_type();
     bool add_linger();
     bool add_blank_line();
+
     /**
      * @brief generate response based on http_parser
      * 
      * @return true : generate response successfully
      * @return false : have error
      */
-    bool gen_response(http_parser&);
+    bool gen_response();
 
     /**
      * @brief 

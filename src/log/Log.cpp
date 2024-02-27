@@ -1,5 +1,5 @@
 #include "Config.h"
-#include "log/Buffer.h"
+#include "utils/Buffer.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -20,8 +20,8 @@ static const std::string LOG_DIR = "/tmp/";
 Log::Log()
 : base_name(LOG_DIR), min_level(Log_Level::info),
   running(false),
-  p_buffer(std::make_unique<Buffer>()),
-  p_buffer_to_write(std::make_unique<Buffer>()) {
+  p_buffer(std::make_unique<utils::Buffer<LOG_BUFF_SZ>>()),
+  p_buffer_to_write(std::make_unique<utils::Buffer<LOG_BUFF_SZ>>()) {
     start();
 }
 

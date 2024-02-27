@@ -6,6 +6,7 @@ namespace webserver {
 namespace net {
 
 void Channel::handle_events(Timer_Stamp_t now) {
+    handling = true;
     if ((revent & EPOLLHUP) && !(revent & EPOLLIN)) { // TCP closed
         handle_close();
     }
@@ -23,6 +24,7 @@ void Channel::handle_events(Timer_Stamp_t now) {
     }
 
     revent = 0;
+    handling = false;
 }
 
 } // namespace webserver::net

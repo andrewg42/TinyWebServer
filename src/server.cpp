@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <Config.h>
 #include <Webserver.h>
+#include <csignal>
 
 static const char short_opts[] = "p:s:t:";
 
@@ -15,15 +16,15 @@ static const struct option long_opts[] = {
     {NULL,      0, NULL , 0},
 };
 
-void exit_helper() {
+void sig_handler(int sig) {
     LOG_CLEANUP;
 
     sleep(1);
-    exit(EXIT_SUCCESS);
+    std::exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv) {
-    atexit(exit_helper);
+    std::signal(SIGINT, sig_handler);
     int c;
 
     while((c = getopt_long(argc, argv, short_opts, long_opts, NULL)) >= 0) {
@@ -49,5 +50,5 @@ int main(int argc, char **argv) {
     webserver::Webserver server(cfg_port);
     server.start();
 
-    return 0;
+    std::exit(EXIT_SUCCESS);
 }

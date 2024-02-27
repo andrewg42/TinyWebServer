@@ -23,6 +23,7 @@ private:
     std::weak_ptr<Http_Conn> wp_conn;
     int fd;
 
+    bool handling;
     uint32_t event;
     uint32_t revent; // received event mask
     Channel_Status status;
@@ -41,7 +42,7 @@ public:
     // ctor
     // only initialized by Acceptor and Http_Conn
     explicit Channel(Event_Loop *p_loop_, int fd_, uint32_t event_)
-    : p_loop(p_loop_), fd(fd_), revent{}, event(event_), status(Channel_Status::removed) {}
+    : p_loop(p_loop_), fd(fd_), revent{}, event(event_), status(Channel_Status::removed), handling(false) {}
 
     // dtor
     ~Channel() = default;
@@ -57,6 +58,9 @@ public:
     // operators for event and revent
     uint32_t get_event() const { return event; }
     void set_revent(uint32_t revent_) { revent = revent_; }
+
+    // operators for handling
+    bool is_handling() { return handling; }
 
     // operators for status
     Channel_Status get_status() const { return status; }

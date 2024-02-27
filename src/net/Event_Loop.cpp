@@ -14,7 +14,7 @@
 namespace webserver {
 namespace net {
 
-static constexpr int EPOLL_TIMEOUT = 5000;
+static constexpr int EPOLL_TIMEOUT = 10000;
 
 Event_Loop::Event_Loop(int port)
     : is_running(false),
@@ -40,7 +40,7 @@ void Event_Loop::loop() {
         
         // TODO: dispatch into threadpool
         for(Channel *p_chan : activate_channels) {
-            p_chan->handle_events(now);
+            if(!p_chan->is_handling()) p_chan->handle_events(now);
         }
         activate_channels.clear();
 
