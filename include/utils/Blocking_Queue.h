@@ -56,7 +56,7 @@ public:
         std::unique_lock<std::mutex> lck(mtx);
         cv.wait(lck, [this]{ return !this->empty(); });
 
-        T value = buffer[take_idx];
+        T value = std::move(buffer[take_idx]);
         take_idx = (take_idx + 1) % MAX_SIZE;
 
         lck.unlock();

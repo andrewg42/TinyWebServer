@@ -11,6 +11,7 @@ using New_Conn_Callback_t = std::function<void(int const, sockaddr_in const &)>;
 
 static constexpr std::size_t LOG_BUFF_SZ = 4096; // for log::Buffer::buffer
 static constexpr std::size_t EVENT_LIST_SZ = 1024; // for net::Reactor::event_list
+static constexpr std::size_t THREADPOOL_SZ = 512;
 
 static constexpr std::size_t READ_BUFFER_SZ = 2048; // for net::Http_Conn::read_buffer
 static constexpr std::size_t WRITE_BUFFER_SZ = 1024; // for net::Http_Conn::write_buffer

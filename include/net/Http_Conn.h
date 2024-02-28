@@ -3,6 +3,8 @@
 #include <sys/epoll.h>
 #include <memory>
 #include <vector>
+#include <sys/stat.h>
+#include <sys/uio.h>
 
 #include <net/Socket.h>
 #include <http/http_parser.h>
@@ -31,7 +33,12 @@ private:
     std::unique_ptr<Channel> p_chan;
     utils::Buffer<READ_BUFFER_SZ> read_buffer;
     utils::Buffer<WRITE_BUFFER_SZ> write_buffer;
+    struct stat file_stat;
     std::string filename;
+    char *file_addr;
+    // for write file
+    struct iovec iv[2];
+    int iv_cnt;
 
 public:
     /**
@@ -64,6 +71,7 @@ public:
 private:
     void do_request();
 
+    void unmap();
     /**
      * @brief append message to response
      * 

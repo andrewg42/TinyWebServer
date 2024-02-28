@@ -1,5 +1,7 @@
 #include <net/Http_Conn.h>
 
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
@@ -9,7 +11,6 @@
 #include <format>
 #include <string>
 #include <string_view>
-#include "http/http_parser.h"
 
 #include <net/Channel.h>
 #include <net/Event_Loop.h>
@@ -20,7 +21,10 @@
 namespace webserver {
 namespace net {
 
+
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
+static constexpr std::size_t READ_BUFFER_SZ = 2048;
+static constexpr std::size_t WRITE_BUFFER_SZ = 1024;
 #define XX(num, name, str) static std::string_view _##num = "HTTP/1.1 " #num " " #str  "\r\n";
 HTTP_STATUS_MAP(XX)
 #undef XX
@@ -54,10 +58,8 @@ http_parser_settings Http_Conn::settings = {
 Http_Conn::Http_Conn(Event_Loop *p_loop_, int fd_)
 : p_loop(p_loop_),
   Socket(fd_),
-  p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)) {
-    read_buffer.clear();
-    write_buffer.clear();
-}
+  p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)),
+  file_addr(nullptr), iv_cnt{} {}
 
 void Http_Conn::init_chan() {
     LOG_DEBUG("Http_Conn::init_chan()");
@@ -89,7 +91,7 @@ void Http_Conn::read_handler() {
         }
         else { // need continue reading
             read_bytes_tot += read_bytes;
-            if(read_bytes_tot >= read_buffer.capacity()) {
+            if(read_bytes_tot >= READ_BUFFER_SZ) {
                 // any good way?
                 LOG_ERROR(" HTTP messsage is too big, {} bytes have been read", read_bytes_tot);
                 read_buffer.resize(read_buffer.capacity());
@@ -110,8 +112,13 @@ void Http_Conn::read_handler() {
     if(!rc) { // error on generate response, close socket and wait timer to remove it
         
     }
+    else if(iv_cnt != 2) {
+        iv[0].iov_base = (void *)write_buffer.data();
+        iv[0].iov_len = write_buffer.size();
+        iv_cnt = 1;
+    }
 
-    read_buffer.clear();
+    read_buffer.clear(); // maybe should continue to parse
 }
 
 void Http_Conn::do_request() { // TODO
@@ -121,11 +128,37 @@ void Http_Conn::do_request() { // TODO
         return;
     }
 
-    // file operations with stat() and mmap()
+    // file operations
     if(parser.method == HTTP_GET) [[likely]] {
-        
+        filename = it->second;
+        LOG_DEBUG("GET request, file name = {}", filename);
     } else if(parser.method == HTTP_POST) {
+        // TODO: parse the name and password
+        LOG_DEBUG("POST request, request body = {}", parser.body);
+    }
 
+    if(stat(filename.c_str(), &file_stat) < 0) { // 404
+        parser.status_code = HTTP_STATUS_NOT_FOUND;
+        return;
+    }
+    if(!(file_stat.st_mode & S_IROTH)) { // 403
+        parser.status_code = HTTP_STATUS_FORBIDDEN;
+        return;
+    }
+    if(S_ISDIR(file_stat.st_mode)) { // 400
+        parser.status_code = HTTP_STATUS_BAD_REQUEST;
+    }
+
+    int fd = ::open(filename.c_str(), O_RDONLY);
+    // zero-copy with mmap()
+    file_addr = reinterpret_cast<char *>(::mmap(0, file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    ::close(fd);
+}
+
+void Http_Conn::unmap() {
+    if (file_addr) {
+        munmap(file_addr, file_stat.st_size);
+        file_addr = 0;
     }
 }
 
@@ -133,56 +166,64 @@ bool Http_Conn::append_response(std::string_view str) {
     return write_buffer.append(str);
 }
 
-bool Http_Conn::add_headers(std::size_t content_len)
-{
+bool Http_Conn::add_headers(std::size_t content_len) {
     return add_content_length(content_len) && add_linger() &&
            add_blank_line();
 }
 
-bool Http_Conn::add_content_length(std::size_t content_len)
-{
+bool Http_Conn::add_content_length(std::size_t content_len) {
     std::string const msg = std::format("Content-Length: {}\r\n", content_len);
     return append_response(msg);
 }
 
-bool Http_Conn::add_content_type()
-{
+bool Http_Conn::add_content_type() {
     return append_response("Content-Type:text/html\r\n");
 }
 
-bool Http_Conn::add_linger()
-{
+bool Http_Conn::add_linger() {
     std::string const msg = std::format("Content-Length: {}\r\n", (parser.connection == true) ? "keep-alive" : "close");
     return append_response(msg);
 }
 
-bool Http_Conn::add_blank_line()
-{
+bool Http_Conn::add_blank_line() {
     return append_response("\r\n");
 }
 
 bool Http_Conn::gen_response() {
     switch (parser.status_code) {
     case HTTP_STATUS_OK: { // 200
-        // TODO
-        append_response(_200);
+        if(0 != file_stat.st_size) {
+            if(append_response(_200) &&
+            add_headers(file_stat.st_size)) {
+                iv[0].iov_base = (void *)write_buffer.data();
+                iv[0].iov_len = write_buffer.size();
+                iv[1].iov_base = file_addr;
+                iv[1].iov_len = file_stat.st_size;
+                iv_cnt = 2;
+                return true;
+            }
+        }
+        else {
+            return append_response(_200)
+                && add_headers(_200_form.size())
+                && append_response(_200_form);
+        }
         break;
     }
     case HTTP_STATUS_BAD_REQUEST: { // 400
         return append_response(_400)
-            &&  add_headers(_400_form.size())
-            &&  append_response(_400_form);
+            && add_headers(_400_form.size())
+            && append_response(_400_form);
     }
     case HTTP_STATUS_NOT_FOUND: { // 404
         return append_response(_404)
-            &&  add_headers(_404_form.size())
-            &&  append_response(_404_form);
+            && add_headers(_404_form.size())
+            && append_response(_404_form);
     }
     default:
         break;
     }
-
-    return true;
+    return false;
 }
 
 void Http_Conn::write_handler() {

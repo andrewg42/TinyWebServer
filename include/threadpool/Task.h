@@ -9,6 +9,7 @@ namespace webserver {
 namespace threadpool {
 
 class Task: public utils::Noncopyable {
+// ref: https://github.com/ChunelFeng/CThreadPool/blob/main/src/UtilsCtrl/ThreadPool/Task/UTask.h
 private:
     struct Task_Base {
         Task_Base() = default;
