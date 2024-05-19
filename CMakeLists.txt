@@ -10,9 +10,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(webserver LANGUAGES C CXX)
 
-file(GLOB_RECURSE webserver_sources CONFIGURE_DEPENDS src/*.cpp src/*.c)
-file(GLOB_RECURSE webserver_headers CONFIGURE_DEPENDS include/*.h)
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS server/*.cpp server/*.c)
+file(GLOB_RECURSE headers CONFIGURE_DEPENDS server/*.h)
 
-add_executable(server ${webserver_sources} ${webserver_headers})
+add_executable(server ${sources} ${headers})
 
-target_include_directories(server PUBLIC include)
+target_include_directories(server PUBLIC .)
