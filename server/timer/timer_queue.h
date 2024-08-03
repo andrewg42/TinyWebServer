@@ -51,7 +51,9 @@ public:
     std::vector<std::unique_ptr<Timer>> tick(Timer_Stamp_t time_stamp); 
 
     // fot testing
-    std::size_t const size() const { return timer_mp.size(); } 
+#ifndef NDEBUG
+    std::size_t const size() const { return timer_mp.size(); }
+#endif
 };
 
 } // namespace webserver::timer

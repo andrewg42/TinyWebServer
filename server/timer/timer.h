@@ -16,6 +16,10 @@ struct Timer {
     // dtor
     ~Timer() = default;
 
+    Timer(Timer &) = delete;
+    
+    Timer &operator=(Timer&) = delete;
+
     // move ctor
     Timer(Timer &&rhs) noexcept
     : expired_time(rhs.expired_time),
