@@ -1,7 +1,7 @@
 #pragma once
 
 namespace webserver {
-namespace utils {
+  namespace utils {
 
 #define WEBSERVER_STRINGIZE_HELPER(x) #x
 
@@ -11,5 +11,5 @@ namespace utils {
 
 #define WEBSERVER_CONCAT(x, y) x##y
 
-} // webserver::utils
+  } // webserver::utils
 } // webserver
