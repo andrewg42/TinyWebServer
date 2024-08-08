@@ -4,12 +4,12 @@ namespace webserver {
 namespace utils {
 
 struct Noncopyable {
-    Noncopyable() = default;
-    virtual ~Noncopyable() = default;
+  Noncopyable() = default;
+  virtual ~Noncopyable() = default;
 
-    Noncopyable(Noncopyable&) = delete;
-    Noncopyable &operator=(Noncopyable&) = delete;
+  Noncopyable(Noncopyable &) = delete;
+  Noncopyable &operator=(Noncopyable &) = delete;
 };
 
-} // namespace webserver::utils
+} // namespace utils
 } // namespace webserver

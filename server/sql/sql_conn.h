@@ -8,13 +8,13 @@ namespace sql {
 
 class SQL_Conn {
 private:
-    std::shared_ptr<MYSQL> p_mysql;
+  std::shared_ptr<MYSQL> p_mysql;
 
 public:
-    // TODO
-    SQL_Conn();
-    ~SQL_Conn();
+  // TODO
+  SQL_Conn();
+  ~SQL_Conn();
 };
 
-} // namespace webserver::sql
+} // namespace sql
 } // namespace webserver
