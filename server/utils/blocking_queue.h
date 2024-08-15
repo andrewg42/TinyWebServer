@@ -1,71 +1,72 @@
 #pragma once
 
-#include <server/utils/noncopyable.h>
 #include <array>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <server/utils/noncopyable.h>
 
 namespace webserver {
 namespace utils {
 
 template <class T, std::size_t N>
-struct Blocking_Queue: public webserver::utils::Noncopyable {
-// ref: https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ArrayBlockingQueue.java
-    using value_type = T;
+struct Blocking_Queue : public webserver::utils::Noncopyable {
+  // ref:
+  // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ArrayBlockingQueue.java
+  using value_type = T;
 
-    Blocking_Queue(): take_idx{}, put_idx{}, count{} {}
-    ~Blocking_Queue() = default;
+  Blocking_Queue() : take_idx{}, put_idx{}, count{} {}
 
-    void push(T const &value) {
-        std::unique_lock<std::mutex> lck(mtx);
-        cv.wait(lck, [this]{ return count<N; });
+  ~Blocking_Queue() = default;
 
-        buffer[put_idx] = value;
-        put_idx = (put_idx + 1) % MAX_SIZE;
+  void push(T const &value) {
+    std::unique_lock<std::mutex> lck(mtx);
+    cv.wait(lck, [this] { return count < N; });
 
-        lck.unlock();
-        cv.notify_one();
-    }
+    buffer[put_idx] = value;
+    put_idx = (put_idx + 1) % MAX_SIZE;
 
-    void push(T &&value) {
-        std::unique_lock<std::mutex> lck(mtx);
-        cv.wait(lck, [this]{ return count<N; });
+    lck.unlock();
+    cv.notify_one();
+  }
 
-        buffer[put_idx] = std::move(value);
-        put_idx = (put_idx + 1) % MAX_SIZE;
+  void push(T &&value) {
+    std::unique_lock<std::mutex> lck(mtx);
+    cv.wait(lck, [this] { return count < N; });
 
-        lck.unlock();
-        cv.notify_one();
-    }
+    buffer[put_idx] = std::move(value);
+    put_idx = (put_idx + 1) % MAX_SIZE;
 
-    [[nodiscard]] T pop() {
-        std::unique_lock<std::mutex> lck(mtx);
-        cv.wait(lck, [this]{ return !this->empty(); });
+    lck.unlock();
+    cv.notify_one();
+  }
 
-        T value = std::move(buffer[take_idx]);
-        take_idx = (take_idx + 1) % MAX_SIZE;
+  [[nodiscard]] T pop() {
+    std::unique_lock<std::mutex> lck(mtx);
+    cv.wait(lck, [this] { return !this->empty(); });
 
-        lck.unlock();
-        cv.notify_one();
-        return value;
-    }
+    T value = std::move(buffer[take_idx]);
+    take_idx = (take_idx + 1) % MAX_SIZE;
+
+    lck.unlock();
+    cv.notify_one();
+    return value;
+  }
 
 private:
-    // (need mutex)
-    bool empty() {
-        return take_idx == put_idx;
-    }
+  // (need mutex)
+  bool empty() {
+    return take_idx == put_idx;
+  }
 
-    static constexpr std::size_t MAX_SIZE = N+1;
-    std::array<T, MAX_SIZE> buffer; // ring buffer
-    std::size_t count;
+  static constexpr std::size_t MAX_SIZE = N + 1;
+  std::array<T, MAX_SIZE> buffer; // ring buffer
+  std::size_t count;
 
-    std::mutex mtx;
-    std::condition_variable cv;
-    std::size_t take_idx;
-    std::size_t put_idx;
-
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::size_t take_idx;
+  std::size_t put_idx;
 };
 
-} // namespace webserver::utils
+} // namespace utils
 } // namespace webserver

@@ -4,7 +4,7 @@
 #include <functional>
 #include <netinet/in.h>
 
-using Timer_Stamp_t = std::chrono::system_clock::time_point;
+using Timer_Stamp_t = std::chrono::steady_clock::time_point;
 using Callback_t = std::function<void()>;
 using New_Conn_Callback_t = std::function<void(int const, sockaddr_in const &)>;
 
