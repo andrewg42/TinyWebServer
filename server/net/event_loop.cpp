@@ -14,9 +14,7 @@ namespace net {
 static constexpr int EPOLL_TIMEOUT = 10000;
 
 Event_Loop::Event_Loop(int port)
-    : is_running(false),
-      ep_fd(::epoll_create1(EPOLL_CLOEXEC)),
-      p_acceptor(std::make_unique<Acceptor>(this, port)),
+    : p_acceptor(std::make_unique<Acceptor>(this, port)),
       p_tq(std::make_unique<timer::Timer_Queue>()),
       events_list(EVENT_LIST_SZ) {
   if (-1 == ep_fd) {
@@ -25,11 +23,7 @@ Event_Loop::Event_Loop(int port)
   mod_channel(p_acceptor->get_chan());
 }
 
-Event_Loop::~Event_Loop() {
-  ::close(ep_fd);
-}
-
-void Event_Loop::loop() {
+void Event_Loop::loop(std::optional<std::chrono::system_clock::duration> timeout) {
   is_running = true;
 
   while (is_running) {
