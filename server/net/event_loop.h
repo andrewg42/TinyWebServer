@@ -49,7 +49,7 @@ private:
     events_list; // avoid duplicate allocation of memory
   std::vector<Channel *> activate_channels;
   std::unordered_map<int, std::shared_ptr<Http_Conn>>
-    conn_mp; // TODO: use absl::flat_hash_map
+    conn_mp; // fd -> http connection
 };
 
 } // namespace net

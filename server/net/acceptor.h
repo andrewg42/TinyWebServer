@@ -9,37 +9,37 @@
 namespace webserver {
 namespace net {
 
-class Event_Loop;
+struct Event_Loop;
+
+struct [[nodiscard]] SocketListener : SocketHandler {
+  using SocketHandler::SocketHandler;
+};
 
 // server socket fd: only support:
 // 1. listen socket connections
 // 2. accept new connection (Http_Conn) on a socket
-class Acceptor : public Socket {
-private:
-  Event_Loop *p_loop;
-
-  // frequently used and will not be easily closed
-  // directly use member variables
-  Channel chan;
-
+struct Acceptor: SocketListener {
 public:
   // ctor
   explicit Acceptor(Event_Loop *p_loop_, int port);
 
-  // dtor
-  ~Acceptor() = default;
-
-  Channel *get_chan() {
-    return &chan;
+  Channel *chan() {
+    return &mChann;
   }
 
 private:
-  void bind_and_listen(int port);
+  void bindAndListen(int port);
 
   void read_handler();
 
   // listen for socket connections and accept new connection on socket
   int accept(sockaddr_in *p_clnt_addr);
+
+private:
+  Event_Loop *mLoop;
+  // frequently used and will not be easily closed
+  // directly use member variables
+  Channel mChann;
 };
 
 } // namespace net

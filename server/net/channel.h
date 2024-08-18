@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <server/config.h>
 #include <server/log/log.h>
+#include <server/net/file_handler.h>
 #include <server/net/socket.h>
-#include <server/utils/noncopyable.h>
 
 namespace webserver {
 namespace net {
@@ -18,84 +19,56 @@ enum class Channel_Status : unsigned char {
   added
 };
 
-class Channel : utils::Noncopyable {
-private:
-  Event_Loop *p_loop;
-
-  // intermediate layer added just because we don’t know when client socket will
-  // be destroyed
-  std::weak_ptr<Http_Conn> wp_conn;
-  int fd;
-
-  bool handling;
-  uint32_t event;
-  uint32_t revent; // received event mask
-  Channel_Status status;
-
-#define PER(f) f(read) f(write) f(close) f(error)
-
-#define FUNC_(x) Callback_t x##_handler;
-  PER(FUNC_)
-#undef FUNC_
-
+class Channel {
 public:
   // ctor
   // only initialized by Acceptor and Http_Conn
-  explicit Channel(Event_Loop *p_loop_, int fd_, uint32_t event_)
-      : p_loop(p_loop_),
-        fd(fd_),
-        revent{},
-        event(event_),
-        status(Channel_Status::removed),
-        handling(false) {}
+  explicit Channel(Event_Loop *loop, int fd, uint32_t event)
+      : mLoop(loop),
+        mFd(fd),
+        mRevent{},
+        mEvent(event),
+        mStatus(Channel_Status::removed),
+        mIsHandling{} {}
 
-  // dtor
+  Channel(Channel &&) = delete;
   ~Channel() = default;
 
-  // operators for fd (fxxk OOP)
-  int get_fd() const {
-    return fd;
+  int fd() const noexcept {
+    return mFd.fileno();
   }
 
-  void set_fd(int const fd_) {
-    fd = fd_;
+  auto conn() {
+    return mConn.lock();
   }
 
-  // operators for wp_conn
-  auto get_holder() -> std::shared_ptr<Http_Conn> {
-    return wp_conn.lock();
-  }
-
-  void set_holder(std::shared_ptr<Http_Conn> p_conn) {
-    wp_conn = p_conn;
+  void setHolder(std::shared_ptr<Http_Conn> conn) {
+    mConn = conn;
   }
 
   // operators for event and revent
-  uint32_t get_event() const {
-    return event;
+  uint32_t event() const noexcept {
+    return mEvent;
   }
 
-  void set_revent(uint32_t revent_) {
-    revent = revent_;
+  void setRevent(uint32_t revent) {
+    mRevent = revent;
   }
 
   // operators for handling
-  bool is_handling() {
-    return handling;
+  bool isHandling() {
+    return mIsHandling;
   }
 
-  // operators for status
-  Channel_Status get_status() const {
-    return status;
+  Channel_Status status() const {
+    return mStatus;
   }
 
-  void set_status(int status_) {
-    status = static_cast<Channel_Status>(status_);
+  void setStatus(Channel_Status status) {
+    mStatus = status;
   }
 
-  void set_status(Channel_Status status_) {
-    status = status_;
-  }
+#define PER(f) f(read) f(write) f(close) f(error)
 
   // operators for handlers
 #define FUNC_(x) \
@@ -105,7 +78,7 @@ public:
   PER(FUNC_)
 #undef FUNC_
 
-  void handle_events(Timer_Stamp_t);
+  void handleEvents(Timer_Stamp_t);
 
 private:
   // detail implements of handle_events()
@@ -117,7 +90,23 @@ private:
   PER(FUNC_)
 #undef FUNC_
 
+#define FUNC_(x) Callback_t x##_handler;
+  PER(FUNC_)
+#undef FUNC_
+
 #undef PER
+
+  Event_Loop *mLoop;
+
+  // intermediate layer added just because we don’t know when client socket will
+  // be destroyed
+  std::weak_ptr<Http_Conn> mConn;
+  FileHandler mFd;
+
+  bool mIsHandling;
+  uint32_t mEvent;
+  uint32_t mRevent; // received event mask
+  Channel_Status mStatus;
 };
 
 } // namespace net

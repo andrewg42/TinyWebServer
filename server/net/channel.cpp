@@ -5,26 +5,27 @@
 namespace webserver {
 namespace net {
 
-void Channel::handle_events(Timer_Stamp_t now) {
-  handling = true;
-  if ((revent & EPOLLHUP) && !(revent & EPOLLIN)) { // TCP closed
+void Channel::handleEvents(Timer_Stamp_t now) {
+  mIsHandling = true;
+
+  if ((mRevent & EPOLLHUP) && !(mRevent & EPOLLIN)) { // TCP closed
     handle_close();
   }
 
-  if (revent & EPOLLERR) { // error
+  if (mRevent & EPOLLERR) { // error
     handle_error();
   }
 
-  if (revent & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) { // read
+  if (mRevent & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) { // read
     handle_read();
   }
 
-  if (revent & EPOLLOUT) { // write
+  if (mRevent & EPOLLOUT) { // write
     handle_write();
   }
 
-  revent = 0;
-  handling = false;
+  mRevent = 0;
+  mIsHandling = false;
 }
 
 } // namespace net

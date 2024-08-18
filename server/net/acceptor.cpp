@@ -11,8 +11,10 @@ namespace net {
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET;
 static constexpr int SOCK_BACKLOG = 4096;
 
-Acceptor::Acceptor(Event_Loop *p_loop_, int port)
-    : p_loop(p_loop_),
+/* // TODO
+Acceptor::Acceptor(Event_Loop *loop, int port)
+    : SocketListener(),
+      mLoop(loop),
       Socket(::socket(PF_INET, SOCK_STREAM, 0)),
       chan(p_loop_, get_fd(), default_event) {
   if (-1 == get_fd()) {
@@ -21,9 +23,9 @@ Acceptor::Acceptor(Event_Loop *p_loop_, int port)
     bind_and_listen(port);
     chan.set_read_handler(std::bind(&Acceptor::read_handler, this));
   }
-}
+}*/
 
-void Acceptor::bind_and_listen(int port) {
+void Acceptor::bindAndListen(int port) {
   int const serv_fd = get_fd();
 
   struct sockaddr_in serv_addr;
@@ -51,7 +53,7 @@ void Acceptor::read_handler() {
   int clnt_fd = accept(&clnt_addr);
 
   if (0 > clnt_fd) {
-    LOG_ERROR("accept()");
+    LOG_ERROR(__func__);
   } else {
     auto p_conn = std::make_shared<Http_Conn>(p_loop, clnt_fd);
     p_conn->init_chan();

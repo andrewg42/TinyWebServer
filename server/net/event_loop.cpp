@@ -47,10 +47,10 @@ void Event_Loop::loop(std::optional<std::chrono::system_clock::duration> timeout
 
 void Event_Loop::add_clnt(std::shared_ptr<Http_Conn> &p_conn) {
   int const fd = p_conn->get_fd();
-  LOG_DEBUG("add_clnt, fd = {}", fd);
+  LOG_DEBUG(__func__, ": , fd = {}", fd);
 
   if (conn_mp.find(fd) != conn_mp.end()) {
-    LOG_ERROR("add_clnt, fd = {}", fd);
+    LOG_ERROR(__func__, ": , fd = {}", fd);
     return;
   }
 
@@ -91,6 +91,14 @@ void Event_Loop::del_channel(Channel *p_chan) {
   p_chan->set_status(Channel_Status::removed);
 }
 
+void Event_Loop::fill_active_channels(int event_num) {
+  for (int i{}; i < event_num; i++) {
+    Channel *chan = reinterpret_cast<Channel *>(events_list[i].data.ptr);
+    chan->set_revent(events_list[i].events);
+    activate_channels.push_back(chan);
+  }
+}
+
 Timer_Stamp_t Event_Loop::poll() {
   int eve_num =
     ::epoll_wait(ep_fd, events_list.data(),
@@ -116,13 +124,6 @@ Timer_Stamp_t Event_Loop::poll() {
   return now;
 }
 
-void Event_Loop::fill_active_channels(int event_num) {
-  for (int i{}; i < event_num; i++) {
-    Channel *chan = reinterpret_cast<Channel *>(events_list[i].data.ptr);
-    chan->set_revent(events_list[i].events);
-    activate_channels.push_back(chan);
-  }
-}
 
 } // namespace net
 } // namespace webserver
