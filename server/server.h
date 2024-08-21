@@ -13,10 +13,10 @@ public:
     Webserver(int port_): port(port_) {}
     void start() {
         net::Event_Loop event_loop(port);
-        
+
         event_loop.loop();
     }
-    
+
 private:
     int port;
 };
