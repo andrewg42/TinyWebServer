@@ -5,7 +5,7 @@
 #include <optional>
 #include <server/config.h>
 #include <server/log/log.h>
-#include <server/net/file_handler.h>
+#include <server/utils/file_handler.h>
 #include <server/net/socket.h>
 
 namespace webserver {
@@ -19,6 +19,9 @@ enum class Channel_Status : unsigned char {
   added
 };
 
+/**
+ * Encapsulate operators of file
+ */
 class Channel {
 public:
   // ctor
@@ -101,7 +104,7 @@ private:
   // intermediate layer added just because we don’t know when client socket will
   // be destroyed
   std::weak_ptr<Http_Conn> mConn;
-  FileHandler mFd;
+  utils::FileHandler mFd;
 
   bool mIsHandling;
   uint32_t mEvent;

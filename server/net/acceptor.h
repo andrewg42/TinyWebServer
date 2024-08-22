@@ -11,14 +11,19 @@ namespace net {
 
 struct Event_Loop;
 
-struct [[nodiscard]] SocketListener : SocketHandler {
-  using SocketHandler::SocketHandler;
+/**
+ * Listener is a Socket
+ */
+struct [[nodiscard]] Listener : Socket {
+  using Socket::Socket;
 };
 
-// server socket fd: only support:
-// 1. listen socket connections
-// 2. accept new connection (Http_Conn) on a socket
-struct Acceptor: SocketListener {
+/**
+ * server socket fd: only support:
+ *  1. listen socket connections
+ *  2. accept new connection (Http_Conn) on a socket
+ */
+struct Acceptor: Listener {
 public:
   // ctor
   explicit Acceptor(Event_Loop *p_loop_, int port);

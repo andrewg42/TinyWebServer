@@ -24,21 +24,6 @@ class Channel;
  */
 class Http_Conn : public Socket,
                   public std::enable_shared_from_this<Http_Conn> {
-private:
-  Event_Loop *p_loop; // Pointer to thr loop (for callback)
-  static http_parser_settings settings;
-  http_parser parser;
-
-  std::unique_ptr<Channel> p_chan;
-  utils::Buffer<READ_BUFFER_SZ> read_buffer;
-  utils::Buffer<WRITE_BUFFER_SZ> write_buffer;
-  struct stat file_stat;
-  std::string filename;
-  char *file_addr;
-  // for write file
-  struct iovec iv[2];
-  int iv_cnt;
-
 public:
   /**
    * @brief Construct a new Http_Conn object
@@ -119,6 +104,21 @@ private:
    *
    */
   void error_handler();
+
+private:
+  Event_Loop *mLoop; // Pointer to thr loop (for callback)
+  static http_parser_settings settings;
+  http_parser parser;
+
+  std::unique_ptr<Channel> p_chan;
+  utils::Buffer<READ_BUFFER_SZ> read_buffer;
+  utils::Buffer<WRITE_BUFFER_SZ> write_buffer;
+  struct stat file_stat;
+  std::string filename;
+  char *file_addr;
+  // for write file
+  struct iovec iv[2];
+  int iv_cnt;
 };
 
 } // namespace net

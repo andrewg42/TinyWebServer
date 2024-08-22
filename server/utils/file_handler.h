@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace webserver {
-namespace net {
+namespace utils {
 
 struct [[nodiscard]] FileHandler {
   FileHandler() noexcept : mFileno(-1) {}

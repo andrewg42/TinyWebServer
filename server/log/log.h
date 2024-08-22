@@ -2,14 +2,14 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <format>
+#include <thread>
+#include <fmt/core.h>
 #include <server/config.h>
 #include <server/utils/buffer.h>
 #include <server/utils/singleton.h>
 #include <string>
 
 namespace webserver {
-
 namespace log {
 
 // ref: https://github.com/archibate/minilog
@@ -22,7 +22,7 @@ enum class Log_Level : unsigned char {
 #undef _FUNCTION
 };
 
-class Log : public utils::Singleton<Log> {
+struct Log : public utils::Singleton<Log> {
   // ref:
   // https://github.com/chenshuo/muduo/blob/master/muduo/base/AsyncLogging.h
   // sender --> buffer -receiver-> disk
@@ -47,7 +47,7 @@ public:
   // write log with log level
 #define _FUNCTION(name) \
   template <class... Args> \
-  void log_##name(std::format_string<Args...> fmt, Args &&...args) { \
+  void log_##name(fmt::format_string<Args...> fmt, Args &&...args) { \
     generic_log(Log_Level::name, std::move(fmt), std::forward<Args>(args)...); \
   }
   FOREACH_LOG_LEVEL(_FUNCTION)
@@ -64,13 +64,13 @@ private:
   // implement of log_##name
   // ref: https://en.cppreference.com/w/cpp/utility/format/vformat
   template <class... Args>
-  void generic_log(Log_Level lev, std::format_string<Args...> fmt,
+  void generic_log(Log_Level lev, fmt::format_string<Args...> fmt,
                    Args &&...args) {
     if (lev < min_level) {
       return;
     }
 
-    std::string msg = std::vformat(fmt.get(), std::make_format_args(args...));
+    std::string msg = fmt::vformat(fmt.get(), fmt::make_format_args(args...));
     log_helper(lev, msg);
   }
 

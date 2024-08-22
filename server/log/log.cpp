@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <chrono>
-#include <format>
+#include <fmt/core.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -9,6 +9,7 @@
 #include <server/utils/buffer.h>
 #include <string>
 #include <thread>
+#include <server/log/time_stamp.h>
 
 namespace webserver {
 namespace log {
@@ -63,10 +64,9 @@ void Log::thread_task() {
 
     // flush buffer to the disk
     // timestamp for setting file name
-    std::chrono::zoned_time now{std::chrono::current_zone(),
-                                std::chrono::high_resolution_clock::now()};
+    auto now = TimeStamp::now();
     // set name of logging file
-    std::ofstream out_file(base_name + std::format("webserverlog_{}.txt", now));
+    std::ofstream out_file(base_name + fmt::format("webserverlog_{}.txt", now));
     if (!out_file.is_open()) {
       std::cerr << "Failed to open the file for writing." << std::endl;
       continue;
@@ -92,10 +92,10 @@ static char const *loglevel2str(Log_Level lev) {
 }
 
 void Log::log_helper(Log_Level lev, std::string const &msg) {
-  std::chrono::zoned_time now{std::chrono::current_zone(),
-                              std::chrono::high_resolution_clock::now()};
+
+  auto now = TimeStamp::now();
   std::string log_msg =
-    std::format("{} [{}] {}\n", now, loglevel2str(lev), msg);
+    fmt::format("{} [{}] {}\n", now, loglevel2str(lev), msg);
 
   std::unique_lock lck(mtx);
   p_buffer->append(log_msg);

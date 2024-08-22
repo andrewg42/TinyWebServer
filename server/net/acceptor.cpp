@@ -16,7 +16,7 @@ Acceptor::Acceptor(Event_Loop *loop, int port)
     : SocketListener(),
       mLoop(loop),
       Socket(::socket(PF_INET, SOCK_STREAM, 0)),
-      chan(p_loop_, get_fd(), default_event) {
+      chan(mLoop_, get_fd(), default_event) {
   if (-1 == get_fd()) {
     LOG_ERROR("socket()");
   } else {
@@ -26,7 +26,7 @@ Acceptor::Acceptor(Event_Loop *loop, int port)
 }*/
 
 void Acceptor::bindAndListen(int port) {
-  int const serv_fd = get_fd();
+  int const servFileno = fileno();
 
   struct sockaddr_in serv_addr;
   ::memset(&serv_addr, 0, sizeof serv_addr);
@@ -35,11 +35,11 @@ void Acceptor::bindAndListen(int port) {
   serv_addr.sin_addr.s_addr = INADDR_ANY; //::inet_addr(ip)
   serv_addr.sin_port = ::htons(port);
 
-  if (-1 == ::bind(serv_fd, reinterpret_cast<sockaddr *>(&serv_addr),
+  if (-1 == ::bind(servFileno, reinterpret_cast<sockaddr *>(&serv_addr),
                    sizeof serv_addr)) {
     LOG_ERROR("bind()");
   } else {
-    if (-1 == ::listen(serv_fd, SOCK_BACKLOG)) {
+    if (-1 == ::listen(servFileno, SOCK_BACKLOG)) {
       LOG_ERROR("listen()");
     }
   }
@@ -55,9 +55,9 @@ void Acceptor::read_handler() {
   if (0 > clnt_fd) {
     LOG_ERROR(__func__);
   } else {
-    auto p_conn = std::make_shared<Http_Conn>(p_loop, clnt_fd);
+    auto p_conn = std::make_shared<Http_Conn>(mLoop, clnt_fd);
     p_conn->init_chan();
-    p_loop->add_clnt(p_conn);
+    mLoop->add_clnt(p_conn);
   }
 }
 

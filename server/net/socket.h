@@ -1,10 +1,9 @@
 #pragma once
 
 #include <unistd.h>
-#include "server/net/file_handling.h"
+#include <server/utils/file_handler.h>
 #include <arpa/inet.h>
 #include <server/log/log.h>
-#include <server/net/file_handling.h>
 #include <server/utils/noncopyable.h>
 #include <string>
 #include <sys/socket.h>
@@ -13,45 +12,10 @@
 namespace webserver {
 namespace net {
 
-/*
-// RAII encapsulation for TCP server socket
-class Socket : public utils::Noncopyable {
-public:
-  // ctor
-  explicit Socket(int fd) : sock_fd(fd) {}
-
-  // dtor
-  ~Socket() {
-    close();
-  }
-
-  // move ctor
-  Socket(Socket &&rhs) noexcept;
-
-  // move assign
-  Socket &operator=(Socket &&rhs) noexcept;
-
-  // close fd
-  void close();
-
-  // enable KEEPALIVE
-  void set_keep_alive();
-
-  // get sock_fd
-  int get_fd() const {
-    return sock_fd;
-  }
-
-private:
-  // check if fd is closed
-  bool is_closed() const {
-    return -1 == sock_fd;
-  }
-
-protected:
-  int sock_fd;
-};*/
-
+/**
+ * Encapsulate the address operations of socket
+ * i.e. struct sockaddr
+ */
 struct SocketAddress {
   // only support IPv4 now
   SocketAddress() = default;
@@ -92,12 +56,19 @@ private:
   int mProtocol;
 };
 
-struct [[nodiscard]] SocketHandler : FileHandler {
-  using FileHandler::FileHandler;
+/**
+ * Socket is a kind of file.
+ */
+struct [[nodiscard]] Socket : utils::FileHandler {
+  using utils::FileHandler::FileHandler;
 };
 
-inline static SocketHandler createSocket(int family, int type, int protocol);
-inline static SocketHandler socketConnect();
+/**
+ * The socket may be closed.
+ * So do not use member function.
+ */
+inline static Socket createSocket(int family, int type, int protocol);
+//inline static Socket socketConnect();
 
 } // namespace net
 } // namespace webserver
