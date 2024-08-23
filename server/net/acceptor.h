@@ -40,8 +40,8 @@ private:
   // listen for socket connections and accept new connection on socket
   int accept(sockaddr_in *p_clnt_addr);
 
-private:
   Event_Loop *mLoop;
+
   // frequently used and will not be easily closed
   // directly use member variables
   Channel mChann;

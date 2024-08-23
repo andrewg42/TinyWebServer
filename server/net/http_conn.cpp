@@ -51,10 +51,10 @@ http_parser_settings Http_Conn::settings = {
   http::on_headers_complete,
 };
 
-Http_Conn::Http_Conn(Event_Loop *p_loop_, int fd_)
-    : p_loop(p_loop_),
-      Socket(fd_),
-      p_chan(std::make_unique<Channel>(p_loop_, fd_, default_event)),
+Http_Conn::Http_Conn(Event_Loop *loop, int fileno)
+    : mLoop(loop),
+      Socket(fileno),
+      p_chan(std::make_unique<Channel>(loop, fileno, default_event)),
       file_addr(nullptr),
       iv_cnt{} {}
 
