@@ -13,6 +13,12 @@ project(webserver LANGUAGES C CXX)
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS server/*.cpp server/*.c)
 file(GLOB_RECURSE headers CONFIGURE_DEPENDS server/*.h)
 
-add_executable(server ${sources} ${headers})
+add_executable(main ${sources} ${headers})
 
-target_include_directories(server PUBLIC .)
+target_include_directories(main PUBLIC .)
+
+find_package(Threads REQUIRED)
+target_link_libraries(main PUBLIC Threads)
+
+set(THIRD_PARTY thirdparty)
+add_subdirectory(${THIRD_PARTY})

@@ -1,2 +1,3 @@
 add_subdirectory(fmt)
-target_link_libraries(main PUBLIC fmt)
+target_include_directories(main PUBLIC fmt/include)
+
