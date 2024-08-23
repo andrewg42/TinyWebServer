@@ -1,3 +1,6 @@
 [submodule "thirdparty/fmt"]
 	path = thirdparty/fmt
-	url = git@github.com:fmtlib/fmt.git
+	url = https://github.com/fmtlib/fmt
+[submodule "thirdparty/liburing/liburing"]
+	path = thirdparty/liburing/liburing
+	url = https://github.com/axboe/liburing
