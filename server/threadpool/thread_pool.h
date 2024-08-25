@@ -8,7 +8,7 @@
 #include <thread>
 #include <vector>
 
-namespace webserver {
+namespace server {
 namespace threadpool {
 
 struct Thread_Pool : public utils::Singleton<Thread_Pool> {
@@ -76,4 +76,4 @@ private:
 };
 
 } // namespace threadpool
-} // namespace webserver
+} // namespace server

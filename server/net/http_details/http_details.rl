@@ -11,7 +11,7 @@
  *  to generate .cpp file.
  */
 
-#include <server/http/http_parser.h>
+#include <server/net/http_details/http_parser.h>
 
 #include <cstdio>
 #include <cstdlib>

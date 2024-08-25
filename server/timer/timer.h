@@ -2,7 +2,7 @@
 
 #include <server/config.h>
 
-namespace webserver {
+namespace server {
 namespace timer {
 
 struct Timer {
@@ -33,4 +33,4 @@ struct Timer {
 };
 
 } // namespace timer
-} // namespace webserver
+} // namespace server

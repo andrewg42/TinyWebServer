@@ -3,7 +3,7 @@
 
 #define TO_LONG(x) std::chrono::duration_cast<std::chrono::nanoseconds>(x.time_since_epoch()).count()
 int main() {
-    using namespace webserver::timer;
+    using namespace server::timer;
     Timer_Queue tq;
 
     std::function<void()> cb = nullptr;

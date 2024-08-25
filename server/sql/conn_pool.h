@@ -3,7 +3,7 @@
 #include <server/sql/sql_conn.h>
 #include <server/utils/singleton.h>
 
-namespace webserver {
+namespace server {
 namespace sql {
 
 struct Conn_Pool : utils::Singleton<Conn_Pool> {};

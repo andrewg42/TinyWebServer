@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-namespace webserver {
+namespace server {
 namespace timer {
 
 struct Key_t {
@@ -63,4 +63,4 @@ public:
 };
 
 } // namespace timer
-} // namespace webserver
+} // namespace server

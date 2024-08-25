@@ -15,7 +15,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 static constexpr uint32_t default_event = EPOLLIN | EPOLLET | EPOLLONESHOT;
@@ -241,4 +241,4 @@ void Http_Conn::error_handler() {
 }
 
 } // namespace net
-} // namespace webserver
+} // namespace server

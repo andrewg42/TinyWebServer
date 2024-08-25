@@ -8,7 +8,7 @@
 #include <server/net/event_loop.h>
 #include <sys/epoll.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 static constexpr int EPOLL_TIMEOUT = 10000;
@@ -126,4 +126,4 @@ Timer_Stamp_t Event_Loop::poll() {
 
 
 } // namespace net
-} // namespace webserver
+} // namespace server

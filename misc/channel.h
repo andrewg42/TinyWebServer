@@ -8,11 +8,10 @@
 #include <server/utils/file_handler.h>
 #include <server/net/socket.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 class Event_Loop;
-class Http_Conn;
 
 enum class Channel_Status : unsigned char {
   removed = 0,
@@ -113,4 +112,4 @@ private:
 };
 
 } // namespace net
-} // namespace webserver
+} // namespace server

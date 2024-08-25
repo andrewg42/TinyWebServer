@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <utility>
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 struct [[nodiscard]] FileHandler {
@@ -18,7 +18,7 @@ struct [[nodiscard]] FileHandler {
     return *this;
   }
 
-  ~FileHandler() {
+  virtual ~FileHandler() {
     if (-1 != mFileno) {
       ::close(mFileno);
     }

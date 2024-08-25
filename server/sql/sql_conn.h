@@ -3,7 +3,7 @@
 #include <memory>
 #include <mysql/mysql.h>
 
-namespace webserver {
+namespace server {
 namespace sql {
 
 class SQL_Conn {
@@ -19,4 +19,4 @@ private:
 };
 
 } // namespace sql
-} // namespace webserver
+} // namespace server

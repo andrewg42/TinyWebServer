@@ -6,7 +6,7 @@
 # include <source_location>
 #endif
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 #if !defined(NDEBUG)
@@ -54,4 +54,4 @@ auto checkErrorNonBlock(auto res, int blockres = 0,
 #endif
 
 } // namespace utils
-} // namespace webserver
+} // namespace server

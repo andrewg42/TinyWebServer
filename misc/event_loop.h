@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 class Channel;
@@ -53,4 +53,4 @@ private:
 };
 
 } // namespace net
-} // namespace webserver
+} // namespace server

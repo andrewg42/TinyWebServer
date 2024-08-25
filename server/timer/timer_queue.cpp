@@ -2,7 +2,7 @@
 #include <server/timer/timer.h>
 #include <server/timer/timer_queue.h>
 
-namespace webserver {
+namespace server {
 namespace timer {
 
 Timer_Queue::~Timer_Queue() {
@@ -33,4 +33,4 @@ Timer_Queue::tick(Timer_Stamp_t time_stamp) {
 }
 
 } // namespace timer
-} // namespace webserver
+} // namespace server

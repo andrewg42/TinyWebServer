@@ -6,7 +6,7 @@
 #include <server/net/channel.h>
 
 
-namespace webserver {
+namespace server {
 
 struct Webserver { // do not use singleton! log::Log is singleton. Webserver need a shorter lifetime
 public:
@@ -21,4 +21,4 @@ private:
     int port;
 };
 
-} // namespace webserver
+} // namespace server

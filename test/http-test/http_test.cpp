@@ -2,7 +2,7 @@
 #include <string>
 #include "http/http_parser.h"
 
-using namespace webserver;
+using namespace server;
 
 static const std::string get_msg =
 "GET /joyent/http-parser HTTP/1.1\r\n"

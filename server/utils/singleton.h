@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 template <class T>
@@ -20,4 +20,4 @@ struct Singleton {
 };
 
 } // namespace utils
-} // namespace webserver
+} // namespace server

@@ -4,7 +4,7 @@
 #include <cstring>
 #include <server/config.h>
 
-namespace webserver {
+namespace server {
 
 namespace utils {
 
@@ -54,4 +54,4 @@ struct Buffer {
 
 } // namespace utils
 
-} // namespace webserver
+} // namespace server

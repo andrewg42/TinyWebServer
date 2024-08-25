@@ -2,7 +2,7 @@
 #include <server/net/channel.h>
 #include <sys/epoll.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 void Channel::handleEvents(Timer_Stamp_t now) {
@@ -29,4 +29,4 @@ void Channel::handleEvents(Timer_Stamp_t now) {
 }
 
 } // namespace net
-} // namespace webserver
+} // namespace server

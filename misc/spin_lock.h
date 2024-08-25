@@ -1,7 +1,7 @@
 #pragma once
 #include <atomic>
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 class Spin_Lock {
@@ -20,5 +20,5 @@ public:
 
 };
 
-} // namespace webserver::utils
-} // namespace webserver
+} // namespace server::utils
+} // namespace server

@@ -1,15 +1,16 @@
 #pragma once
 
 #include <server/config.h>
-#include <server/net/channel.h>
+#include <server/net/epoll_details/epoll_file_handler.h>
 #include <server/net/socket.h>
 #include <server/utils/noncopyable.h>
 #include <sys/epoll.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
 struct Event_Loop;
+static constexpr uint32_t defaultListenerEvent = EPOLLIN;
 
 /**
  * Listener is a Socket
@@ -19,33 +20,27 @@ struct [[nodiscard]] Listener : Socket {
 };
 
 /**
- * server socket fd: only support:
- *  1. listen socket connections
- *  2. accept new connection (Http_Conn) on a socket
+ * server socket fd. only support:
+ *    1. listen socket connections
+ *    2. accept new connection (Http_Conn) on a socket
  */
-struct Acceptor: Listener {
-public:
-  // ctor
-  explicit Acceptor(Event_Loop *p_loop_, int port);
+struct Acceptor {
+  explicit Acceptor(EpollLoop *loop) : mLoop(loop) {}
 
-  Channel *chan() {
-    return &mChann;
+  Acceptor(Acceptor &&) = delete;
+
+  EpollFileHandler *handler() {
+    return &mHandler;
   }
 
-private:
-  void bindAndListen(int port);
+  void bindAndListen(SocketAddress &addr, int backlog = SOMAXCONN);
 
-  void read_handler();
+  Socket accept(SocketAddress &peerAddr);
 
-  // listen for socket connections and accept new connection on socket
-  int accept(sockaddr_in *p_clnt_addr);
-
-  Event_Loop *mLoop;
-
-  // frequently used and will not be easily closed
-  // directly use member variables
-  Channel mChann;
+  EpollLoop *mLoop;
+  Listener mListener;
+  EpollFileHandler mHandler;
 };
 
 } // namespace net
-} // namespace webserver
+} // namespace server

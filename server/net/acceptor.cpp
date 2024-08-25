@@ -1,15 +1,30 @@
+#include "server/utils/error_handling.h"
 #include <server/config.h>
 #include <server/log/log.h>
 #include <server/net/acceptor.h>
-#include <server/net/event_loop.h>
-#include <server/net/http_conn.h>
 #include <server/net/socket.h>
 
-namespace webserver {
+namespace server {
 namespace net {
 
-static constexpr uint32_t default_event = EPOLLIN | EPOLLET;
-static constexpr int SOCK_BACKLOG = 4096;
+void Acceptor::bindAndListen(SocketAddress &addr, int backlog) {
+  Socket sock = createSocket(addr.family(), addr.socktype(), addr.protocol());
+  socketSetOption(sock, SOL_SOCKET, SO_REUSEADDR, 1);
+  socketSetOption(sock, SOL_SOCKET, SO_REUSEPORT, 1);
+
+  mListener = Listener(sock.releaseFile());
+  utils::checkError(::bind(
+    mListener.fileno(), reinterpret_cast<struct sockaddr const *>(&addr.mAddr),
+    addr.mAddrLen));
+  utils::checkError(listen(mListener.fileno(), backlog));
+}
+
+Socket Acceptor::accept(SocketAddress &peerAddr) {
+  int fd = utils::checkError(::accept4(
+    mListener.fileno(), reinterpret_cast<struct sockaddr *>(&peerAddr.mAddr),
+    &peerAddr.mAddrLen, 0));
+  return Socket(fd);
+}
 
 /* // TODO
 Acceptor::Acceptor(Event_Loop *loop, int port)
@@ -23,7 +38,7 @@ Acceptor::Acceptor(Event_Loop *loop, int port)
     bind_and_listen(port);
     chan.set_read_handler(std::bind(&Acceptor::read_handler, this));
   }
-}*/
+}
 
 void Acceptor::bindAndListen(int port) {
   int const servFileno = fileno();
@@ -71,6 +86,6 @@ int Acceptor::accept(sockaddr_in *p_clnt_addr) {
   }
   return clnt_sock;
 }
-
+*/
 } // namespace net
-} // namespace webserver
+} // namespace server

@@ -9,7 +9,7 @@
 #include <server/utils/singleton.h>
 #include <string>
 
-namespace webserver {
+namespace server {
 namespace log {
 
 // ref: https://github.com/archibate/minilog
@@ -116,4 +116,4 @@ private:
     webserver::log::Log &log = webserver::log::Log::instance(); \
     log.stop(); \
   } while (0);
-} // namespace webserver
+} // namespace server

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 struct Noncopyable {
@@ -12,4 +12,4 @@ struct Noncopyable {
 };
 
 } // namespace utils
-} // namespace webserver
+} // namespace server

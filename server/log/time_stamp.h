@@ -5,7 +5,7 @@
 #include <string_view>
 #include <fmt/core.h>
 
-namespace webserver {
+namespace server {
 namespace log {
 
 struct TimeStamp {

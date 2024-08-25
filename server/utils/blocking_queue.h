@@ -5,7 +5,7 @@
 #include <mutex>
 #include <server/utils/noncopyable.h>
 
-namespace webserver {
+namespace server {
 namespace utils {
 
 template <class T, std::size_t N>
@@ -69,4 +69,4 @@ private:
 };
 
 } // namespace utils
-} // namespace webserver
+} // namespace server

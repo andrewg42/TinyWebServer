@@ -11,7 +11,7 @@
 #include <thread>
 #include <server/log/time_stamp.h>
 
-namespace webserver {
+namespace server {
 namespace log {
 
 static std::string const LOG_DIR = "/tmp/";
@@ -105,4 +105,4 @@ void Log::log_helper(Log_Level lev, std::string const &msg) {
 }
 
 } // namespace log
-} // namespace webserver
+} // namespace server
