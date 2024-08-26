@@ -2,30 +2,25 @@
 
 #include <chrono>
 #include <ctime>
-#include <string_view>
 #include <fmt/core.h>
+#include <string_view>
 
 namespace server {
 namespace log {
 
 struct TimeStamp {
-    static std::string_view now() {
-        auto stNow = std::chrono::system_clock::now();
+  static std::string_view now() {
+    auto stNow = std::chrono::system_clock::now();
 
-        std::time_t ptNow = std::chrono::system_clock::to_time_t(stNow);
+    std::time_t ptNow = std::chrono::system_clock::to_time_t(stNow);
 
-        std::tm *ltNow = std::localtime(&ptNow);
+    std::tm *ltNow = std::localtime(&ptNow);
 
-        return fmt::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
-                ltNow->tm_year + 1900,
-                ltNow->tm_mon + 1,
-                ltNow->tm_mday,
-                ltNow->tm_hour,
-                ltNow->tm_min,
-                ltNow->tm_sec
-            );
-    }
+    return fmt::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+                       ltNow->tm_year + 1900, ltNow->tm_mon + 1, ltNow->tm_mday,
+                       ltNow->tm_hour, ltNow->tm_min, ltNow->tm_sec);
+  }
 };
 
-}
-}
+} // namespace log
+} // namespace server

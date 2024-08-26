@@ -25,7 +25,7 @@ struct SocketAddress {
                          int sockType = SOCK_STREAM, int protocol = IPPROTO_IP)
       : mSockType(sockType),
         mProtocol(protocol) {
-    std::memcpy(&mAddr, addr, addrLen);
+    ::memcpy(&mAddr, addr, addrLen);
     mAddr.ss_family = family;
     mAddrLen = addrLen;
   }
