@@ -1,10 +1,10 @@
 #pragma once
 
-#include "server/net/epoll_details/epoll_loop.h"
+#include "server/net/epoll/epoll_loop.h"
 #include <memory>
 #include <server/config.h>
-#include <server/net/epoll_details/epoll_file_handler.h>
-#include <server/net/http_details/http_parser.h>
+#include <server/net/epoll/epoll_file_handler.h>
+#include <server/net/http/http_parser.h>
 #include <server/net/socket.h>
 #include <server/utils/buffer.h>
 #include <server/utils/noncopyable.h>

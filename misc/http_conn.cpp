@@ -3,9 +3,9 @@
 #include <memory>
 #include <netinet/in.h>
 #include <server/log/log.h>
-#include <server/net/epoll_details/epoll_loop.h>
+#include <server/net/epoll/epoll_loop.h>
 #include <server/net/http_conn.h>
-#include <server/net/http_details/http_callbacks.h>
+#include <server/net/http/http_callbacks.h>
 #include <server/net/socket.h>
 #include <string>
 #include <string_view>
@@ -41,12 +41,12 @@ static std::map<std::string_view const, std::string_view const> const url2file =
 
 http_parser_settings HTTPConn::settings = {
   nullptr,
-  http::on_method,
-  http::on_url,
-  http::on_http_version,
-  http::on_header_field,
-  http::on_header_value,
-  http::on_headers_complete,
+  on_method,
+  on_url,
+  on_http_version,
+  on_header_field,
+  on_header_value,
+  on_headers_complete,
 };
 
 struct HTTPConn::ParserImpl {};

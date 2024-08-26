@@ -1,12 +1,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
-#include <server/net/http_details/http_callbacks.h>
+#include <server/net/http/http_callbacks.h>
 #include <string_view>
 
 namespace server {
 namespace net {
-namespace http {
 
 #define HTTP_HEADER_FIELD_MAP(XX) \
   XX(CONNECTION, "Connection") \
@@ -109,6 +108,5 @@ int on_body(http_parser *_, char const *at, size_t length) {
   return 0;
 }
 
-} // namespace http
 } // namespace net
 } // namespace server

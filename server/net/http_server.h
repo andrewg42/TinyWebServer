@@ -9,7 +9,7 @@ struct HTTPServer {
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> const mImpl;
+  std::unique_ptr<Impl> mImpl;
 };
 
 } // namespace net

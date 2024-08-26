@@ -1,7 +1,7 @@
 #include <chrono>
 #include <optional>
-#include <server/net/epoll_details/epoll_file_handler.h>
-#include <server/net/epoll_details/epoll_loop.h>
+#include <server/net/epoll/epoll_file_handler.h>
+#include <server/net/epoll/epoll_loop.h>
 #include <server/utils/error_handling.h>
 
 namespace server {

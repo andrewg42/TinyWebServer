@@ -16,7 +16,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <server/net/http_details/http_parser.h>
+#include <server/net/http/http_parser.h>
 
 /** Machine **/
 

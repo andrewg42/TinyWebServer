@@ -7,6 +7,10 @@
 namespace server {
 namespace net {
 
+void ListenerFileHandler::handleEvent() {
+  // TODO
+}
+
 void Acceptor::bindAndListen(SocketAddress &addr, int backlog) {
   Socket sock = createSocket(addr.family(), addr.socktype(), addr.protocol());
   socketSetOption(sock, SOL_SOCKET, SO_REUSEADDR, 1);
