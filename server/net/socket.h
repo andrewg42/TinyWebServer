@@ -1,8 +1,6 @@
 #pragma once
-
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <chrono>
 #include <server/log/log.h>
 #include <server/utils/file_handler.h>
 #include <server/utils/noncopyable.h>
@@ -50,14 +48,17 @@ struct SocketAddress {
     return host() + ':' + std::to_string(port());
   }
 
-  struct sockaddr_storage mAddr; // address value and family
+  // address family, address value(ip and port), other data and padding
+  struct sockaddr_storage mAddr;
   socklen_t mAddrLen;
-  int mSockType; // type of socket. may be SOCK_STREAM, SOCK_DGRAM, ...
-  int mProtocol; // protocol. may be IPPROTO_IP, ...
+  // type of socket. may be SOCK_STREAM, SOCK_DGRAM, ...
+  int mSockType;
+  // protocol. may be IPPROTO_IP, ...
+  int mProtocol;
 };
 
 /**
- * Socket is a FileHandler.
+ * Socket is a file
  */
 struct [[nodiscard]] Socket : utils::FileHandler {
   using utils::FileHandler::FileHandler;
@@ -68,15 +69,15 @@ struct [[nodiscard]] Socket : utils::FileHandler {
  * So do not use member function.
  */
 // getsockname
-static inline SocketAddress getSockAddr(Socket &sock);
+extern SocketAddress getSockAddr(Socket &sock);
 // getpeername
-static inline SocketAddress getSockPeerAddr(Socket &sock);
+extern SocketAddress getSockPeerAddr(Socket &sock);
 
 // for Acceptor and Http_Conn
-static inline Socket createSocket(int family, int sockType, int protocol);
+extern Socket createSocket(int family, int sockType, int protocol);
 
 template <class T>
-static inline int socketSetOption(Socket &sock, int level, int opt,
+extern int socketSetOption(Socket &sock, int level, int opt,
                                   T const &optVal) {
   return ::setsockopt(sock.fileno(), level, opt, &optVal, sizeof(optVal));
 }

@@ -3,7 +3,6 @@
 #include <server/net/epoll/epoll_file_handler.h>
 #include <server/net/epoll/epoll_loop.h>
 #include <server/net/http/http_parser.h>
-#include <server/net/http/uri.h>
 #include <server/net/socket.h>
 
 namespace server {
@@ -22,6 +21,7 @@ struct ParserImpl {
  * Epoll file handler for client.
  */
 struct ClientFileHandler : EpollFileHandler {
+  using EpollFileHandler::EpollFileHandler;
   void handleEvent();
 };
 
@@ -29,7 +29,7 @@ struct ClientFileHandler : EpollFileHandler {
  * Client socket fd.
  */
 struct HTTPConn : public std::enable_shared_from_this<HTTPConn> {
-  explicit HTTPConn(EpollLoop *loop) : mLoop(loop) {}
+  explicit HTTPConn(EpollLoop *loop, Socket sock);
 
   ~HTTPConn() = default;
 

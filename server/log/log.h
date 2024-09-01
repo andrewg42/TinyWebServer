@@ -1,13 +1,12 @@
 #pragma once
-
 #include <atomic>
 #include <condition_variable>
-#include <thread>
 #include <fmt/core.h>
 #include <server/config.h>
 #include <server/utils/buffer.h>
 #include <server/utils/singleton.h>
 #include <string>
+#include <thread>
 
 namespace server {
 namespace log {
@@ -33,7 +32,9 @@ public:
   Log();
 
   // dtor: will cause core dumped(double free of p_buffer and p_buffer_to_write)
-  ~Log() = default;
+  ~Log() {
+    stop();
+  }
 
   // start log thread
   void start();
@@ -91,7 +92,7 @@ private:
 
 #define LOG_TRACE(...) \
   do { \
-    webserver::log::Log &log = webserver::log::Log::instance(); \
+    server::log::Log &log = server::log::Log::instance(); \
     if (log::Log_Level::trace >= log.min_level) { \
       log.log_trace(__VA_ARGS__); \
     } \
@@ -99,7 +100,7 @@ private:
 
 #define LOG_DEBUG(...) \
   do { \
-    webserver::log::Log &log = webserver::log::Log::instance(); \
+    server::log::Log &log = server::log::Log::instance(); \
     if (log::Log_Level::debug >= log.min_level) { \
       log.log_debug(__VA_ARGS__); \
     } \
@@ -107,13 +108,13 @@ private:
 
 #define LOG_ERROR(...) \
   do { \
-    webserver::log::Log &log = webserver::log::Log::instance(); \
+    server::log::Log &log = server::log::Log::instance(); \
     log.log_error(__VA_ARGS__); \
   } while (0);
 
 #define LOG_CLEANUP \
   do { \
-    webserver::log::Log &log = webserver::log::Log::instance(); \
+    server::log::Log &log = server::log::Log::instance(); \
     log.stop(); \
   } while (0);
 } // namespace server

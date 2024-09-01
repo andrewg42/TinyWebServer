@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <chrono>
 #include <netinet/in.h>
 #include <server/log/log.h>
 #include <server/net/socket.h>
@@ -35,7 +34,7 @@ int SocketAddress::port() const {
 void SocketAddress::trySetPort(int port) {
   if (family() == AF_INET) {
     reinterpret_cast<struct sockaddr_in &>(mAddr).sin_port =
-      htons(static_cast<short>(port));
+      ::htons(static_cast<short>(port));
   } else [[unlikely]] {
     throw std::runtime_error("address family not ipv4.");
   }

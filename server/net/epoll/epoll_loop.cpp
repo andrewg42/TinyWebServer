@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cstring>
 #include <optional>
 #include <server/net/epoll/epoll_file_handler.h>
 #include <server/net/epoll/epoll_loop.h>
@@ -7,17 +8,17 @@
 namespace server {
 namespace net {
 
-bool EpollLoop::addListener(EpollFileHandler &file_handler, int ctl) {
+bool EpollLoop::addListener(EpollFileHandler *file_handler, int ctl) {
   struct epoll_event event;
-  // TODO
-  event.events = file_handler.mEvents;
-  event.data.ptr = &file_handler;
-  utils::checkError(
-    epoll_ctl(mEpoll, EPOLL_CTL_ADD, file_handler.mFileno, &event));
+  ::memset(&event, 0, sizeof event);
+  event.events = file_handler->mEvents;
+  event.data.ptr = file_handler;
+
+  utils::checkError(::epoll_ctl(mEpoll, ctl, file_handler->mFileno, &event));
 }
 
 void EpollLoop::removeListener(int fileno) {
-  utils::checkError(epoll_ctl(mEpoll, EPOLL_CTL_DEL, fileno, NULL));
+  utils::checkError(::epoll_ctl(mEpoll, EPOLL_CTL_DEL, fileno, NULL));
   --mCount;
 }
 

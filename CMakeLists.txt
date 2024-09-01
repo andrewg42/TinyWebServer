@@ -18,7 +18,10 @@ add_executable(main ${sources} ${headers})
 target_include_directories(main PUBLIC .)
 
 find_package(Threads REQUIRED)
-target_link_libraries(main PUBLIC Threads)
+target_link_libraries(main PUBLIC Threads::Threads)
 
-set(THIRD_PARTY thirdparty)
-add_subdirectory(${THIRD_PARTY})
+find_package(fmt REQUIRED)
+target_link_libraries(main PUBLIC fmt::fmt)
+
+#set(THIRD_PARTY thirdparty)
+#add_subdirectory(${THIRD_PARTY})

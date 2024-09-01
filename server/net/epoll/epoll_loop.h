@@ -11,7 +11,7 @@ namespace net {
 struct EpollFileHandler;
 
 struct EpollLoop {
-  EpollLoop() : mEventList(32) {}
+  EpollLoop() : mEventList(64) {}
 
   EpollLoop &operator=(EpollLoop &&) = delete;
 
@@ -19,8 +19,10 @@ struct EpollLoop {
     ::close(mEpoll);
   }
 
-  bool addListener(EpollFileHandler &file_handler, int ctl);
+  // for acceptor
+  bool addListener(EpollFileHandler *file_handler, int ctl);
   void removeListener(int fileno);
+  // for event loop
   bool run(
     std::optional<std::chrono::system_clock::duration> timeout = std::nullopt);
 

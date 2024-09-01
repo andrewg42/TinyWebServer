@@ -1,24 +1,42 @@
 #pragma once
-
-#include <server/utils/singleton.h>
+#include "server/net/socket.h"
 #include <server/log/log.h>
-#include <server/net/event_loop.h>
-#include <server/net/channel.h>
-
+#include <server/net/acceptor.h>
+#include <server/net/epoll/epoll_loop.h>
+#include <server/net/http_conn.h>
 
 namespace server {
 
-struct Webserver { // do not use singleton! log::Log is singleton. Webserver need a shorter lifetime
-public:
-    Webserver(int port_): port(port_) {}
-    void start() {
-        net::Event_Loop event_loop(port);
+using namespace net;
 
-        event_loop.loop();
+struct WebServer {
+public:
+  explicit WebServer(int port) : mPort(port) {}
+
+  void loop() {
+    // build acceptor
+    struct sockaddr_in addr = {
+      .sin_family = AF_INET,
+      .sin_port = htons(mPort),
+      .sin_addr =
+        {
+          .s_addr = htonl(INADDR_LOOPBACK),
+        },
+    };
+    Acceptor acceptor{SocketAddress{(struct sockaddr *)(&addr), sizeof(addr)}};
+
+    // build epolls
+
+    // run main loop
+    while (true) {
+      if (auto income = acceptor.accept()) {
+        
+      }
     }
+  }
 
 private:
-    int port;
+  int mPort;
 };
 
 } // namespace server
